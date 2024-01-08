@@ -1,12 +1,15 @@
 
 
 
+import 'dart:convert';
+
 import 'package:face/core/base_state/base_state.dart';
 import 'package:face/features/recognize_face/presentation/riverpod/recognize_face_provider.dart';
 import 'package:face/features/train_face/presentation/riverpod/train_face_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tflite_flutter/tflite_flutter.dart' as TfLiteModel;
 
 class HomeScreen extends ConsumerWidget{
@@ -86,6 +89,21 @@ class HomeScreen extends ConsumerWidget{
                 const SizedBox(height: 30.0,),
                 // Text(BaseState.success().data),
 
+                ElevatedButton(
+                  onPressed: deleteJsonKeyFromSharedPreferences,
+                  // onPressed: (){},
+                  child: const Text(' delete trainings'),
+                ),
+
+                const SizedBox(height: 30.0,),
+
+                ElevatedButton(
+                  onPressed: getKeysFromTestMap,
+                  child: Text(' Print the Keys'),
+                ),
+
+
+
               ],
             ),
           ),
@@ -120,5 +138,39 @@ class HomeScreen extends ConsumerWidget{
       ),
     );
   }
+  Future<void> deleteJsonKeyFromSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
+    // Check if the key exists
+    bool keyExists = prefs.containsKey('testMap');
+
+    if (keyExists) {
+      // Delete the key (file) from SharedPreferences
+      prefs.remove('testMap');
+      print('deleted json');
+    } else {
+      print('Key testMap does not exist in SharedPreferences.');
+    }
+  }
+  Future<void> getKeysFromTestMap() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Get the JSON string from SharedPreferences
+    String? jsonTestMap = prefs.getString('testMap');
+
+    if (jsonTestMap != null) {
+      // Parse the JSON string into a Map
+      Map<String, dynamic> testMap = jsonDecode(jsonTestMap);
+
+      // Get the keys from the Map
+      List<String> keys = testMap.keys.toList();
+
+      print('Keys in testMap:');
+      keys.forEach((key) {
+        print(key);
+      });
+    } else {
+      print('testMap is empty or not found in SharedPreferences.');
+    }
+  }
 }
