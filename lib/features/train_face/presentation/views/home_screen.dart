@@ -1,6 +1,8 @@
 
 
 
+import 'package:face/core/base_state/base_state.dart';
+import 'package:face/features/recognize_face/presentation/riverpod/recognize_face_provider.dart';
 import 'package:face/features/train_face/presentation/riverpod/train_face_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -14,15 +16,19 @@ class HomeScreen extends ConsumerWidget{
 
 
 
-  Future<TfLiteModel.Interpreter> loadModel() async {
-    return await TfLiteModel.Interpreter.fromAsset('assets/mobilefacenet.tflite');
-  }
+  // Future<TfLiteModel.Interpreter> loadModel() async {
+  //   return await TfLiteModel.Interpreter.fromAsset('assets/mobilefacenet.tflite');
+  // }
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     late String personName;
     final _formKey = GlobalKey<FormState>();
-    final controller = ref.watch(trainFaceProvider.notifier);
-    final state = ref.watch(trainFaceProvider);
+    final trainController = ref.watch(trainFaceProvider.notifier);
+    final trainState = ref.watch(trainFaceProvider);
+    final recognizeController = ref.watch(recognizefaceProvider.notifier);
+    final recognizeState = ref.watch(recognizefaceProvider);
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Face Recognition'),
@@ -59,7 +65,7 @@ class HomeScreen extends ConsumerWidget{
                       // Validation passed, perform desired actions here
 
                       print('Validation successful!');
-                      controller.pickImagesAndTrain(personName,interpreter);
+                      trainController.pickImagesAndTrain(personName,interpreter);
 
                     } else {
                       // Validation failed
@@ -70,7 +76,15 @@ class HomeScreen extends ConsumerWidget{
 
                   child: const Text('Pick and Train Images'),
                 ),
-                // if(imageData!=null) Image.memory(imageData),
+                const SizedBox(height: 30.0,),
+                ElevatedButton(
+                  onPressed: (){
+                    recognizeController. pickImagesAndRecognize(interpreter);
+                  },
+                  child: const Text('Recognize Image'),
+                ),
+                const SizedBox(height: 30.0,),
+                // Text(BaseState.success().data),
 
               ],
             ),
