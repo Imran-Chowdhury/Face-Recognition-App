@@ -12,12 +12,7 @@ Float32List imageToByteListFloat32(
 
   // Resize the image to match the inputSize
   img.Image resizedImage = img.copyResize(image, width: inputSize, height: inputSize);
-  // List<int> imageBytes = img.encodePng(resizedImage); // Encoding the image
-
-  // setState(() {
-  //   imageData = Uint8List.fromList(imageBytes);
-  // });
-
+  // img.Image resizedImage = image;
 
   for (var y = 0; y < inputSize; y++) {
     for (var x = 0; x < inputSize; x++) {

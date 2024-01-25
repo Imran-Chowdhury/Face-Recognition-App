@@ -9,7 +9,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import '../../../../core/utils/image_to_float32.dart';
 import '../data_source/recognize_face_data_source.dart';
 import '../data_source/recognize_face_data_source_impl.dart';
-
+import 'package:image/image.dart' as img;
 
 final recognizeFaceRepositoryProvider = Provider((ref) =>
     RecognizeFaceRepositoryImpl(dataSource:ref.read(recognizeFaceDataSourceProvider) ));
@@ -22,10 +22,40 @@ class RecognizeFaceRepositoryImpl implements RecognizeFaceRepository{
 
 
 
-  @override
-  Future<void> recognizeFace(img.Image image, Interpreter interpreter) async {
+  // @override
+  // Future<void> recognizeFace(img.Image image, Interpreter interpreter) async {
+  //   // img.Image resizedImage = img.copyResize(image, width: 112, height: 112);
+  //
+  //   List input =  imageToByteListFloat32(112, 128, 128, image);
+  //   input = input.reshape([1, 112, 112, 3]);
+  //
+  //
+  //
+  //
+  //
+  //   // Initialize an empty list for outputs
+  //   List output = List.filled(1 * 192, null, growable: false).reshape([1, 192]);
+  //
+  //   interpreter.run(input, output);
+  //   output = output.reshape([192]);
+  //
+  //
+  //
+  //   var  finalOutput = List.from(output);
+  //   print(finalOutput);
+  //   Map<String, List<dynamic>> trainings = await dataSource.readMapFromSharedPreferences();
+  //   recognition(trainings, finalOutput, 0.8);
+  // }
 
-    List input = imageToByteListFloat32(112, 128, 128, image);
+
+
+
+
+  @override
+  Future<String> recognizeFace(img.Image image, Interpreter interpreter) async {
+    // img.Image resizedImage = img.copyResize(image, width: 112, height: 112);
+
+    List input =  imageToByteListFloat32(112, 128, 128, image);
     input = input.reshape([1, 112, 112, 3]);
 
 
@@ -41,48 +71,84 @@ class RecognizeFaceRepositoryImpl implements RecognizeFaceRepository{
 
 
     var  finalOutput = List.from(output);
+    print(finalOutput);
     Map<String, List<dynamic>> trainings = await dataSource.readMapFromSharedPreferences();
-    recognition(trainings, finalOutput, 1.0);
-
-
-
+   return recognition(trainings, finalOutput, 0.8);
   }
+  //
+  // @override
+  // void recognition(
+  //     Map<String, List<dynamic>> trainings, List<dynamic> finalOutput, double threshold) {
+  //   double minDistance = double.infinity;
+  //   String nearestKey = '';
+  //
+  //   trainings.forEach((key, value) {
+  //     for (var innerList in value) {
+  //       double distance = euclideanDistance(finalOutput, innerList);
+  //       print('the distance is $distance');
+  //
+  //       if (distance <= threshold && distance < minDistance) {
+  //         minDistance = distance;
+  //         nearestKey = key;
+  //       }
+  //     }
+  //   });
+  //
+  //   if (nearestKey != null) {
+  //
+  //
+  //
+  //
+  //
+  //     print('Nearest key within threshold: $nearestKey');
+  //     print('Distance: $minDistance');
+  //   } else {
+  //     // setState(() {
+  //     //   personName = 'No match found within the threshold.';
+  //     // });
+  //
+  //     print('No match found within the threshold.');
+  //   }
+  // }
+
 
   @override
-  void recognition(
+ String recognition(
       Map<String, List<dynamic>> trainings, List<dynamic> finalOutput, double threshold) {
     double minDistance = double.infinity;
-    String? nearestKey;
+    String nearestKey = '';
+    try{
 
-    trainings.forEach((key, value) {
-      for (var innerList in value) {
-        double distance = euclideanDistance(finalOutput, innerList);
-        print('the distance is $distance');
+      trainings.forEach((key, value) {
+        for (var innerList in value) {
+          double distance = euclideanDistance(finalOutput, innerList);
+          print('the distance is $distance');
 
-        if (distance <= threshold && distance < minDistance) {
-          minDistance = distance;
-          nearestKey = key;
+          if (distance <= threshold && distance < minDistance) {
+            minDistance = distance;
+            nearestKey = key;
+          }
         }
+      });
+
+      if (nearestKey.isNotEmpty) {
+
+        print('Nearest key within threshold: $nearestKey');
+        print('Distance: $minDistance');
+        return 'The person is $nearestKey and the min distance is $minDistance';
+      } else {
+
+
+        print('No match found within the threshold.');
+        return 'No match found within the threshold.';
       }
-    });
 
-    if (nearestKey != null) {
-      // BaseState.success(nearestKey);
+    }catch(e){
+      rethrow;
 
-      // setState(() {
-      //   personName = nearestKey;
-      //   displayDist = minDistance;
-      // });
-
-      print('Nearest key within threshold: $nearestKey');
-      print('Distance: $minDistance');
-    } else {
-      // setState(() {
-      //   personName = 'No match found within the threshold.';
-      // });
-
-      print('No match found within the threshold.');
     }
+
+
   }
 
   @override

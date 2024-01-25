@@ -13,6 +13,7 @@ import 'dart:typed_data';
 import 'package:face/features/train_face/presentation/views/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,16 +38,46 @@ Future<TfLiteModel.Interpreter> loadModel() async {
   return await TfLiteModel.Interpreter.fromAsset('assets/mobilefacenet.tflite');
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final TfLiteModel.Interpreter interpreter;
 
   const MyApp({required this.interpreter});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+
+class _MyAppState extends State<MyApp> {
+
+  late FaceDetector faceDetector;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    final faceDetectorOptions = FaceDetectorOptions(
+      minFaceSize: 0.2,
+      performanceMode: FaceDetectorMode.accurate, // or .fast
+    );
+
+
+    faceDetector = FaceDetector(options: faceDetectorOptions);
+  }
+
+  @override
+  void dispose() {
+    faceDetector.close();
+    super.dispose();
+  }
+
+
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       // Your app's configuration...
-      home: HomeScreen(interpreter: interpreter),
+      home: HomeScreen(interpreter: widget.interpreter, faceDetector: faceDetector,),
     );
   }
 }

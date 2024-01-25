@@ -22,9 +22,9 @@ class TrainFaceNotifier extends StateNotifier<BaseState>{
   TrainFaceNotifier({
    required this.ref,
     required this.useCase
-}):super(BaseState.initial());
+}):super(const InitialState());
 
-  Future<void> pickImagesAndTrain(String name, Interpreter interpreter) async {
+  Future<void> pickImagesAndTrain(String name, Interpreter interpreter, List resizedImageList) async {
 
 
     late img.Image image;
@@ -33,23 +33,26 @@ class TrainFaceNotifier extends StateNotifier<BaseState>{
     final ImagePicker picker = ImagePicker();
     var count;
     try {
-      //Selecting 10 images for training
-      for (var i = 0; i <= 4; i++) {
+      // Selecting 10 images for training
 
-        XFile? pickedImage = await picker.pickImage(
-            source: ImageSource.gallery);
-        if (pickedImage != null) {
-          image = img.decodeImage(await pickedImage.readAsBytes())!;
-        }
 
-        if (image != null) {
-          images.add(image);
-        }
-      }
+      // for (var i = 0; i <= 4; i++) {
+      //
+      //   XFile? pickedImage = await picker.pickImage(
+      //       source: ImageSource.gallery);
+      //   if (pickedImage != null) {
+      //     image = img.decodeImage(await pickedImage.readAsBytes())!;
+      //   }
+      //
+      //   if (image != null) {
+      //     images.add(image);
+      //   }
+      // }
+      //
+      // print(images.length);
 
-      print(images.length);
-
-      useCase.getImagesList(name, images, interpreter);
+      // useCase.getImagesList(name, images, interpreter);
+     await useCase.getImagesList(name, resizedImageList, interpreter);
     }catch(e){
       rethrow;
     }

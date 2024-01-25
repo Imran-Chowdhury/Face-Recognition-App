@@ -1,8 +1,8 @@
 
 
 
-import 'package:face/features/train_face/data/data_source/data_source.dart';
-import 'package:face/features/train_face/data/data_source/data_source_impl.dart';
+import 'package:face/features/train_face/data/data_source/train_face_data_source.dart';
+import 'package:face/features/train_face/data/data_source/train_face_data_source_impl.dart';
 import 'package:face/features/train_face/domain/train_face_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
@@ -27,6 +27,7 @@ class TrainFaceRepositoryImpl implements TrainFaceRepository {
        print(trainings.length);
        List input = [];
 
+
        input = imageToByteListFloat32(112, 128, 128, trainings[i]);
        input = input.reshape([1, 112, 112, 3]);
        inputs.add(input);
@@ -48,7 +49,7 @@ class TrainFaceRepositoryImpl implements TrainFaceRepository {
        finalOutputList.add(e);
      }
 
-     dataSource.saveOrUpdateJsonInSharedPreferences(name, finalOutputList);
+     await dataSource.saveOrUpdateJsonInSharedPreferences(name, finalOutputList);
    }catch(e){
      rethrow;
    }

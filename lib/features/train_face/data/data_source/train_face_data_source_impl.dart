@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'data_source.dart';
+import 'train_face_data_source.dart';
 
 final trainFaceDataSourceProvider = Provider((ref) => TrainFaceDataSourceImpl());
 class TrainFaceDataSourceImpl implements TrainFaceDataSource{
