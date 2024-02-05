@@ -5,7 +5,9 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:camera/camera.dart';
 import 'package:face/core/base_state/base_state.dart';
+import 'package:face/features/live_feed/presentation/views/live_feed_screen.dart';
 import 'package:image/image.dart' as img;
 import 'package:face/features/face_detection/presentation/riverpod/face_detection_provider.dart';
 import 'package:face/features/recognize_face/presentation/riverpod/recognize_face_provider.dart';
@@ -19,9 +21,10 @@ import 'package:flutter/src/widgets/image.dart' as IMG;
 
 class HomeScreen extends ConsumerWidget{
 
-  HomeScreen({required this.interpreter,required this.faceDetector});
+  HomeScreen({required this.interpreter,required this.faceDetector, required this.cameras});
   final tf_lite.Interpreter interpreter;
   final FaceDetector faceDetector;
+  List<CameraDescription> cameras;
 
 
 
@@ -50,6 +53,8 @@ class HomeScreen extends ConsumerWidget{
 
       return uint8List;
     }
+
+    print('the length of the camera is ${cameras.length}');
 
 
     return Scaffold(
@@ -85,14 +90,9 @@ class HomeScreen extends ConsumerWidget{
                 ElevatedButton(
                   onPressed: ()async {
                     if (_formKey.currentState!.validate()) {
-                      // Validation passed, perform desired actions here
+                      //detect face and train the mobilefacenet model
+                     await detectController.detectFacesFromImages(faceDetector, 'Train from gallery').then((imgList)async{
 
-
-
-                     await detectController.detectFacesFromImages(faceDetector, 'Training').then((imgList)async{
-                      //  if(detectState is SuccessState){
-                      // await trainController.pickImagesAndTrain(personName,interpreter,detectState.data);
-                      //  }
 
                        final stopwatch = Stopwatch()..start();
 
@@ -103,18 +103,6 @@ class HomeScreen extends ConsumerWidget{
                        print('Detection and Training Execution Time: $elapsedSeconds seconds');
 
                      });
-
-
-
-                      // _detectedFaces = await detectController.detectFacesFromImages(faceDetector);
-                      // print(_detectedFaces.length);
-
-                      // detectController.detectFacesFromImages(faceDetector).then((resizedImageList) {
-                      //   print('The number of faces is ${resizedImageList.length}');
-                      //   // _detectedFaces = resizedImageList;
-                      // });
-                          // .then((resizedImageList) => trainController.pickImagesAndTrain(personName,interpreter,resizedImageList));
-                       // trainController.pickImagesAndTrain(personName,interpreter);
 
                     } else {
                       // Validation failed
@@ -128,8 +116,8 @@ class HomeScreen extends ConsumerWidget{
                 const SizedBox(height: 30.0,),
                 ElevatedButton(
                   onPressed: ()async{
-
-                   await detectController.detectFacesFromImages(faceDetector, 'Recognize').then((value) async{
+                    //detect and recognize face
+                   await detectController.detectFacesFromImages(faceDetector, 'Recognize from gallery').then((value) async{
                      final stopwatch = Stopwatch()..start();
 
                        await recognizeController. pickImagesAndRecognize(value[0], interpreter);
@@ -163,6 +151,29 @@ class HomeScreen extends ConsumerWidget{
                 ),
                 const SizedBox(height: 30.0,),
 
+
+
+                ElevatedButton(
+                  onPressed: ()async{
+                    // List<CameraDescription> cameras;
+                    List<CameraDescription>  cameras = await availableCameras();
+                    CameraController controller = CameraController(
+                        cameras[1],
+                        ResolutionPreset.medium,
+                        enableAudio: false,
+                        imageFormatGroup: ImageFormatGroup.yuv420
+                    );
+                    Navigator.push(
+                      context,
+                      // MaterialPageRoute(builder: (context) => LiveFeedScreen()),
+                      MaterialPageRoute(builder: (context) => LiveFeedScreen(
+                        detectionController: detectController,faceDetector: faceDetector,cameras: cameras,interpreter: interpreter,)),
+                    );
+                  },
+                  child: const Text(' Live Feed Recognition'),
+                ),
+                const SizedBox(height: 30.0,),
+
               ],
             ),
           ),
@@ -175,7 +186,7 @@ class HomeScreen extends ConsumerWidget{
                 itemBuilder: (context, index) {
                   final img.Image image = detectState.data[index];
                   final Uint8List uint8List = convertImageToUint8List(image);
-                  // print('Displaying image at index $index: $image');
+
 
                   return
                     Container(
@@ -235,11 +246,7 @@ class HomeScreen extends ConsumerWidget{
 
         print('$key: $value');
       });
-      // print('Keys in testMap:');
-      // keys.forEach((key) {
-      //   print(key);
-      //
-      // });
+
     } else {
       print('testMap is empty or not found in SharedPreferences.');
     }

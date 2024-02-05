@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../data/repository/face_detection_repository_impl.dart';
 import '../repository/face_detection_repository.dart';
+import 'package:image/image.dart' as img;
 
 
 final faceDetectionUseCaseProvider = Provider((ref) => FaceDetectionUseCase(repository: ref.read(faceDetectionRepositoryProvider)) );
@@ -21,6 +22,11 @@ class FaceDetectionUseCase {
 
   Future<List> detectFaces(List<XFile> selectedImages, FaceDetector faceDetector)async{
     return await repository.detectFaces(selectedImages, faceDetector);
+  }
+
+  Future<List> detectFacesFromLiveFeed(InputImage inputImage,img.Image image, FaceDetector faceDetector)async{
+
+    return await repository.detectFacesFromLiveFeed(inputImage,image, faceDetector);
   }
 
 

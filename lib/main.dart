@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:camera/camera.dart';
 import 'package:face/features/train_face/presentation/views/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,22 +27,26 @@ void main() async {
 
   // Load the model before running the app
   final interpreter = await loadModel();
+  List<CameraDescription> cameras = await availableCameras();
 
   runApp(
     ProviderScope(
-      child: MyApp(interpreter: interpreter),
+      child: MyApp(interpreter: interpreter,cameras: cameras,),
     ),
   );
 }
 
 Future<TfLiteModel.Interpreter> loadModel() async {
   return await TfLiteModel.Interpreter.fromAsset('assets/mobilefacenet.tflite');
+  // return await TfLiteModel.Interpreter.fromAsset('assets/mobile_face_net.tflite');
+  // mobile_face_net.tflite
 }
 
 class MyApp extends StatefulWidget {
   final TfLiteModel.Interpreter interpreter;
+  List<CameraDescription> cameras;
 
-  const MyApp({required this.interpreter});
+   MyApp({super.key, required this.interpreter,required this.cameras});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -57,6 +62,7 @@ class _MyAppState extends State<MyApp> {
     // TODO: implement initState
     super.initState();
     final faceDetectorOptions = FaceDetectorOptions(
+      // enableTracking: true,
       minFaceSize: 0.2,
       performanceMode: FaceDetectorMode.accurate, // or .fast
     );
@@ -68,6 +74,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void dispose() {
     faceDetector.close();
+    widget.interpreter.close();
     super.dispose();
   }
 
@@ -77,7 +84,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       // Your app's configuration...
-      home: HomeScreen(interpreter: widget.interpreter, faceDetector: faceDetector,),
+      home: HomeScreen(interpreter: widget.interpreter, faceDetector: faceDetector,cameras:widget.cameras ,),
     );
   }
 }
