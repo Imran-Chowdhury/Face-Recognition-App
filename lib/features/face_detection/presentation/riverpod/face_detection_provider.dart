@@ -52,6 +52,9 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
         stopwatch.stop();
         final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
 
+
+
+
         // Print the elapsed time in seconds
         print('The Detection Execution time: $elapsedSeconds seconds');
         return resizedImage;
@@ -89,6 +92,10 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
  Future<List> detectFromLiveFeed(InputImage inputImage, img.Image image,  FaceDetector faceDetector)async{
 
     final croppedImagesList = await useCase.detectFacesFromLiveFeed(inputImage, image, faceDetector);
+
+   // if(croppedImagesList.isEmpty){
+   //   state = const ErrorState('No face detected');
+   // }
     return croppedImagesList;
 
   }

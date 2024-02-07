@@ -116,7 +116,7 @@ class RecognizeFaceRepositoryImpl implements RecognizeFaceRepository{
  String recognition(
       Map<String, List<dynamic>> trainings, List<dynamic> finalOutput, double threshold) {
     double minDistance = double.infinity;
-    String nearestKey = '';
+    String matchedName = '';
     try{
 
       trainings.forEach((key, value) {
@@ -126,22 +126,25 @@ class RecognizeFaceRepositoryImpl implements RecognizeFaceRepository{
 
           if (distance <= threshold && distance < minDistance) {
             minDistance = distance;
-            nearestKey = key;
+            matchedName = key;
           }
         }
       });
+      return matchedName;
 
-      if (nearestKey.isNotEmpty) {
-
-        print('Nearest key within threshold: $nearestKey');
-        print('Distance: $minDistance');
-        return 'The person is $nearestKey and the min distance is $minDistance';
-      } else {
-
-
-        print('No match found within the threshold.');
-        return 'No match found within the threshold.';
-      }
+      // if (nearestKey.isNotEmpty) {
+      //
+      //   print('Nearest key within threshold: $nearestKey');
+      //   print('Distance: $minDistance');
+      //   // return 'The person is $nearestKey and the min distance is $minDistance';
+      //   return ' $nearestKey';
+      // } else {
+      //
+      //
+      //   print('No match found within the threshold.');
+      //   // return 'No match found within the threshold.';
+      //   return 'No match!';
+      // }
 
     }catch(e){
       rethrow;

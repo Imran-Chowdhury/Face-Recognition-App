@@ -62,9 +62,14 @@ class RecognizeFaceNotifier extends StateNotifier<BaseState>{
 
 
 
-
      final name =  await useCase.recognizeFace(image, interpreter);
-     state = SuccessState(name: name);
+
+     if(name.isNotEmpty){
+       state = SuccessState(name: name);
+     }else{
+       state = const ErrorState('No match!');
+     }
+
 
 
 

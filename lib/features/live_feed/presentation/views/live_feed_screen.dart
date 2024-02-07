@@ -39,8 +39,11 @@ class LiveFeedScreen extends ConsumerStatefulWidget {
 class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
   late CameraController controller;
   int numberOfFrames  = 0;
+  // int frameSkipCount = 15;
   int frameSkipCount = 25;
+  // int frameSkipCount = 40;
   List frameList = [];
+  String message = '';
 
 
 
@@ -92,12 +95,14 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
 
   Future<void> startStream(CameraController controller) async {
 
+
     final detectController = ref.watch(faceDetectionProvider.notifier);
     final recognizeController = ref.watch(recognizefaceProvider.notifier);
-    final recognizeState = ref.watch(recognizefaceProvider);
+    // final recognizeState = ref.watch(recognizefaceProvider);
 
      //Image Streaming
     controller.startImageStream((image) async {
+
 
 
 
@@ -109,34 +114,58 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
     final faceDetected =  await detectController.detectFromLiveFeed(inputImage, imgImage, widget.faceDetector);
 
      numberOfFrames++;
-     if (numberOfFrames % frameSkipCount == 0) {
+     if ( numberOfFrames % frameSkipCount == 0) {
        print('the number of frames are $numberOfFrames');
 
-       await recognizeController.pickImagesAndRecognize(faceDetected [0], widget.interpreter);
-       if(recognizeState is SuccessState){
-         print(recognizeState.name);
+
+       if(faceDetected.isNotEmpty){
+         await recognizeController.pickImagesAndRecognize(faceDetected [0], widget.interpreter);
+
        }
+
+
      }
 
 
 
     });
   }
-
-  @override
   Widget build(BuildContext context) {
+    final recognizeState = ref.watch(recognizefaceProvider);
+    final detectState = ref.watch(faceDetectionProvider);
+
+    // String message = '';
+
+    if (recognizeState is SuccessState) {
+      message = 'Recognized: ${recognizeState.name}';
+    } else if (recognizeState is ErrorState) {
+      message = 'Recognized: ${recognizeState.errorMessage}';
+    }else{
+      message = 'No face Detected';
+    }
 
     return Stack(
+      fit: StackFit.expand,
       children: [
         CameraPreview(controller),
-
+        Positioned(
+          bottom: 16,
+          left: 16,
+          child: Text(
+            message,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+            ),
+          ),
+        ),
       ],
     );
   }
 }
 
 
-
+//
 // class FaceDetectorPainter extends CustomPainter {
 //   FaceDetectorPainter(this.imageSize, this.results);
 //   final Size imageSize;
@@ -199,7 +228,7 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
 //       rect.bottom.toDouble() * scaleY,
 //       const Radius.circular(10));
 // }
-
+//
 
 
 
