@@ -2,7 +2,6 @@
 
 
 import 'dart:convert';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
@@ -17,7 +16,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tflite_flutter/tflite_flutter.dart' as tf_lite;
-import 'package:flutter/src/widgets/image.dart' as IMG;
+
+import '../../../live_feed/presentation/views/live_feed_training_screen.dart';
 
 class HomeScreen extends ConsumerWidget{
 
@@ -26,11 +26,6 @@ class HomeScreen extends ConsumerWidget{
   final FaceDetector faceDetector;
   List<CameraDescription> cameras;
 
-
-
-  // Future<TfLiteModel.Interpreter> loadModel() async {
-  //   return await TfLiteModel.Interpreter.fromAsset('assets/mobilefacenet.tflite');
-  // }
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     late String personName;
@@ -59,7 +54,7 @@ class HomeScreen extends ConsumerWidget{
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Face Recognition'),
+        title: const Text('Face Recognition'),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -74,7 +69,7 @@ class HomeScreen extends ConsumerWidget{
                     labelText: 'Name',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15.0), // Adjust border radius
-                      borderSide: BorderSide(width: 2.0), // Adjust border thickness
+                      borderSide: const BorderSide(width: 2.0), // Adjust border thickness
                     ),
                   ),
                   onChanged: (value) {
@@ -112,6 +107,42 @@ class HomeScreen extends ConsumerWidget{
 
 
                   child: const Text('Pick and Train Images'),
+                ),
+                const SizedBox(height: 30.0,),
+
+                ElevatedButton(
+                  onPressed: ()async {
+                    if (_formKey.currentState!.validate()) {
+
+
+                      final List<XFile>? capturedImages = await  Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CameraCaptureScreen(cameras: cameras,)),
+                      );
+
+                      if (capturedImages != null) {
+                        await detectController.detectFacesFromImages(faceDetector, 'Train from captures', capturedImages).then((imgList)async{
+
+
+                          final stopwatch = Stopwatch()..start();
+
+                          await trainController.pickImagesAndTrain(personName,interpreter,imgList);
+
+                          stopwatch.stop();
+                          final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
+                          print('Detection and Training Execution Time: $elapsedSeconds seconds');
+
+                        });
+                      }
+
+                    } else {
+                      // Validation failed
+                      print('Validation failed');
+                    }
+                  },
+
+
+                  child: const Text('Capture and train image from live feed'),
                 ),
                 const SizedBox(height: 30.0,),
                 ElevatedButton(
@@ -157,12 +188,12 @@ class HomeScreen extends ConsumerWidget{
                   onPressed: ()async{
                     // List<CameraDescription> cameras;
                     List<CameraDescription>  cameras = await availableCameras();
-                    CameraController controller = CameraController(
-                        cameras[1],
-                        ResolutionPreset.medium,
-                        enableAudio: false,
-                        imageFormatGroup: ImageFormatGroup.yuv420
-                    );
+                    // CameraController controller = CameraController(
+                    //     cameras[1],
+                    //     ResolutionPreset.medium,
+                    //     enableAudio: false,
+                    //     imageFormatGroup: ImageFormatGroup.yuv420
+                    // );
                     Navigator.push(
                       context,
                       // MaterialPageRoute(builder: (context) => LiveFeedScreen()),
@@ -174,14 +205,17 @@ class HomeScreen extends ConsumerWidget{
                 ),
                 const SizedBox(height: 30.0,),
 
+
+
+
               ],
             ),
           ),
           if(detectState is SuccessState)
-          // (_detectedFaces.isNotEmpty)?
+
             Flexible(
               child: ListView.builder(
-                // itemCount: _detectedFaces.length,
+
                 itemCount: detectState.data?.length ?? 0,
                 itemBuilder: (context, index) {
                   final img.Image image = detectState.data[index];

@@ -40,8 +40,8 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
   late CameraController controller;
   int numberOfFrames  = 0;
   // int frameSkipCount = 15;
-  int frameSkipCount = 25;
-  // int frameSkipCount = 40;
+  // int frameSkipCount = 25;
+  int frameSkipCount = 40;
   List frameList = [];
   String message = '';
 
@@ -54,15 +54,15 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
   }
 
   Future<void> initializeCameras() async {
-    // cameras = await availableCameras();
+
     controller = CameraController(
       widget.cameras[1],
       ResolutionPreset.low,
       enableAudio: false,
-      // imageFormatGroup: ImageFormatGroup.yuv420,
+
     );
     controller.initialize().then((_){
-      // startStream(controller);
+
       if (!mounted) {
         return;
       }
@@ -98,12 +98,10 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
 
     final detectController = ref.watch(faceDetectionProvider.notifier);
     final recognizeController = ref.watch(recognizefaceProvider.notifier);
-    // final recognizeState = ref.watch(recognizefaceProvider);
+
 
      //Image Streaming
     controller.startImageStream((image) async {
-
-
 
 
 
@@ -111,7 +109,7 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
 
      img.Image imgImage = convertCameraImageToImgImage(image, controller.description.lensDirection);
 
-    final faceDetected =  await detectController.detectFromLiveFeed(inputImage, imgImage, widget.faceDetector);
+    final faceDetected =  await detectController.detectFromLiveFeedForRecognition(inputImage, imgImage, widget.faceDetector);
 
      numberOfFrames++;
      if ( numberOfFrames % frameSkipCount == 0) {
@@ -134,13 +132,13 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
     final recognizeState = ref.watch(recognizefaceProvider);
     final detectState = ref.watch(faceDetectionProvider);
 
-    // String message = '';
+
 
     if (recognizeState is SuccessState) {
       message = 'Recognized: ${recognizeState.name}';
     } else if (recognizeState is ErrorState) {
-      message = 'Recognized: ${recognizeState.errorMessage}';
-    }else{
+      message = ' ${recognizeState.errorMessage}';
+    }else if(detectState is ErrorState){
       message = 'No face Detected';
     }
 

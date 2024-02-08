@@ -70,11 +70,15 @@ class FaceDetectionRepositoryImpl implements FaceDetectionRepository {
       for(int i = 0; i<selectedImages.length;i++){
 
         final File file = File(selectedImages[i].path);
-        final img.Image decodedImg = img.decodeImage(file.readAsBytesSync())!;
+        img.Image decodedImg = img.decodeImage(file.readAsBytesSync())!;
+
         final int left = face[i].boundingBox.left.toInt();
         final int top = face[i].boundingBox.top.toInt();
         final int width = face[i].boundingBox.width.toInt();
         final int height = face[i].boundingBox.height.toInt();
+
+
+
 
         final img.Image croppedImg = img.copyCrop(decodedImg, left, top, width, height);
         // final img.Image resizedImage = img.copyResize(croppedImg, width: 112, height: 112);
@@ -96,16 +100,17 @@ class FaceDetectionRepositoryImpl implements FaceDetectionRepository {
       if(faces.isEmpty){
         // implement the logic to remove the picture where no faces are detected
         print('No face detected');
+        return [];
       }else{
         //adding the first face found in the inputImage into a list
         detectedFaces.add(faces[0]);
-
+        return cropFacesFromLiveFeed(image, detectedFaces);
       }
     }catch(e){
       rethrow;
     }
 //If wanted to detect and crop as much as faces possible then use cropFacesFromLiveFeed(image, faces)
-    return cropFacesFromLiveFeed(image, detectedFaces);
+//     return cropFacesFromLiveFeed(image, detectedFaces);
 
 
   }
@@ -123,6 +128,7 @@ class FaceDetectionRepositoryImpl implements FaceDetectionRepository {
         final int top = faces[i].boundingBox.top.toInt();
         final int width = faces[i].boundingBox.width.toInt();
         final int height = faces[i].boundingBox.height.toInt();
+
 
         final img.Image croppedImg = img.copyCrop(image, left, top, width, height);
         // final img.Image resizedImage = img.copyResize(croppedImg, width: 112, height: 112);
