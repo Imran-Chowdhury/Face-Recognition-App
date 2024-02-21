@@ -67,6 +67,7 @@ class RecognizeFaceNotifier extends StateNotifier<BaseState>{
      if(name.isNotEmpty){
        state = SuccessState(name: name);
      }else{
+        print('the name is $name');
        state = const ErrorState('No match!');
      }
 

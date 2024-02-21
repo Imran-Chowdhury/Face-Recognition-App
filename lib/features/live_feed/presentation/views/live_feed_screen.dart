@@ -40,8 +40,8 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
   late CameraController controller;
   int numberOfFrames  = 0;
   // int frameSkipCount = 15;
-  // int frameSkipCount = 25;
-  int frameSkipCount = 40;
+  int frameSkipCount = 25;
+  // int frameSkipCount = 40;
   List frameList = [];
   String message = '';
 
@@ -97,29 +97,48 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
 
 
     final detectController = ref.watch(faceDetectionProvider.notifier);
+    final detectState = ref.watch(faceDetectionProvider);
     final recognizeController = ref.watch(recognizefaceProvider.notifier);
 
 
      //Image Streaming
     controller.startImageStream((image) async {
 
+     //
+     //  //For detecting faces
+     // InputImage inputImage = convertCameraImageToInputImage(image, controller);
+     //
+     // //For recognizing faces
+     // img.Image imgImage = convertCameraImageToImgImage(image, controller.description.lensDirection);
 
-
-     InputImage inputImage = convertCameraImageToInputImage(image, controller);
-
-     img.Image imgImage = convertCameraImageToImgImage(image, controller.description.lensDirection);
-
-    final faceDetected =  await detectController.detectFromLiveFeedForRecognition(inputImage, imgImage, widget.faceDetector);
+    // final faceDetected =  await detectController.detectFromLiveFeedForRecognition(inputImage, imgImage, widget.faceDetector);
 
      numberOfFrames++;
      if ( numberOfFrames % frameSkipCount == 0) {
        print('the number of frames are $numberOfFrames');
 
 
+       DateTime start = DateTime.now();
+
+       //For detecting faces
+       InputImage inputImage = convertCameraImageToInputImage(image, controller);
+
+       //For recognizing faces
+       img.Image imgImage = convertCameraImageToImgImage(image, controller.description.lensDirection);
+
+       final faceDetected =  await detectController.detectFromLiveFeedForRecognition(inputImage, imgImage, widget.faceDetector);
+
+
        if(faceDetected.isNotEmpty){
          await recognizeController.pickImagesAndRecognize(faceDetected [0], widget.interpreter);
 
        }
+       DateTime end = DateTime.now();
+       Duration timeTaken = end.difference(start);
+       double milliSeconds = timeTaken.inMilliseconds.toDouble();
+
+       print('Time taken: $milliSeconds milliseconds');
+
 
 
      }
@@ -128,19 +147,30 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
 
     });
   }
+
+
+
+
+
   Widget build(BuildContext context) {
     final recognizeState = ref.watch(recognizefaceProvider);
     final detectState = ref.watch(faceDetectionProvider);
 
 
 
-    if (recognizeState is SuccessState) {
+
+    if (recognizeState is SuccessState && detectState is SuccessState) {
       message = 'Recognized: ${recognizeState.name}';
     } else if (recognizeState is ErrorState) {
       message = ' ${recognizeState.errorMessage}';
     }else if(detectState is ErrorState){
-      message = 'No face Detected';
+
+      message = detectState.errorMessage;
+      // 'No face Detected';
     }
+    // else{
+    //   message = 'No face Detected';
+    // }
 
     return Stack(
       fit: StackFit.expand,

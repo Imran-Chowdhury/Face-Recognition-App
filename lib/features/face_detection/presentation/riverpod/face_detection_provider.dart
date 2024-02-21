@@ -114,6 +114,8 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
 
    if(croppedImagesList.isEmpty){
      state = const ErrorState('No face detected');
+   }else{
+     state = const SuccessState();
    }
     return croppedImagesList;
 
