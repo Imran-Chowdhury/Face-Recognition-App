@@ -12,7 +12,7 @@ abstract class RecognizeFaceRepository{
 
   double euclideanDistance(List e1, List e2);
 
-  Future<String> recognizeFace(img.Image image, Interpreter interpreter);
+  Future<String> recognizeFace(img.Image image, Interpreter interpreter, String nameOfJsonFile);
 
   String recognition(Map<String, List<dynamic>> data, List<dynamic> foundList, double threshold);
 

@@ -19,9 +19,11 @@ Float32List imageToByteListFloat32(
 
       var pixel = resizedImage.getPixel(x, y);
 
-      buffer[pixelIndex++] = (img.getRed(pixel) - mean) / std;
+      buffer[pixelIndex++] = (img.getRed(pixel) - mean) / std; // test the results by taking mean and std = 127.5
       buffer[pixelIndex++] = (img.getGreen(pixel) - mean) / std;
       buffer[pixelIndex++] = (img.getBlue(pixel) - mean) / std;
+
+
     }
   }
   return convertedBytes.buffer.asFloat32List();

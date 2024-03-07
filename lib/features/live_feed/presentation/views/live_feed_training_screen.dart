@@ -31,7 +31,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
 
   Future<void> setupCamera() async {
 
-    controller = CameraController(widget.cameras[1], ResolutionPreset.medium);
+    controller = CameraController(widget.cameras[0], ResolutionPreset.max);
     await controller.initialize();
     if (mounted) {
       setState(() {});
@@ -43,10 +43,12 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
     try {
       final XFile capturedImage = await controller.takePicture();
 
+
       setState(() {
         capturedImages.add(capturedImage);
       });
-      if (capturedImages.length == 5) {
+      // if (capturedImages.length == 5) {
+      if (capturedImages.length == 10) {
         // If 5 images are captured, navigate back to the home screen
         Navigator.pop(context, capturedImages);
       }
@@ -76,7 +78,8 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen> {
            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: captureImage,
-              child: Text('Capture Image (${capturedImages.length}/5)'),
+              // child: Text('Capture Image (${capturedImages.length}/5)'),
+              child: Text('Capture Image (${capturedImages.length}/10)'),
             ),
           ],
         ),

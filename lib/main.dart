@@ -20,11 +20,13 @@ void main() async {
 
   // Load the model before running the app
   final interpreter = await loadModel();
+  final livenessInterpreter = await loadLivenessModel();
+
   List<CameraDescription> cameras = await availableCameras();
 
   runApp(
     ProviderScope(
-      child: MyApp(interpreter: interpreter,cameras: cameras,),
+      child: MyApp(interpreter: interpreter,livenessInterpreter: livenessInterpreter, cameras: cameras,),
     ),
   );
 }
@@ -35,11 +37,19 @@ Future<TfLiteModel.Interpreter> loadModel() async {
   // mobile_face_net.tflite
 }
 
+Future<TfLiteModel.Interpreter> loadLivenessModel() async {
+  // return await TfLiteModel.Interpreter.fromAsset('assets/FaceDeSpoofing.tflite');
+  return await TfLiteModel.Interpreter.fromAsset('assets/FaceAntiSpoofing.tflite');
+
+
+}
+
 class MyApp extends StatefulWidget {
   final TfLiteModel.Interpreter interpreter;
+  final TfLiteModel.Interpreter livenessInterpreter;
   List<CameraDescription> cameras;
 
-   MyApp({super.key, required this.interpreter,required this.cameras});
+   MyApp({super.key, required this.interpreter,required this.livenessInterpreter, required this.cameras});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -54,6 +64,17 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     // TODO: implement initState
     super.initState();
+
+    print('THE FACENET MODEL NEEDS:');
+    print(widget.interpreter.getInputTensors());
+    print(widget.interpreter.getOutputTensors());
+
+
+    print('THE LIVENESS DETECTOR NEEDS:');
+    print(widget.livenessInterpreter.getInputTensors());
+    print(widget.livenessInterpreter.getOutputTensors());
+
+
     final faceDetectorOptions = FaceDetectorOptions(
       // enableTracking: true,
       minFaceSize: 0.2,
@@ -77,8 +98,14 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       // Your app's configuration...
-      home: HomeScreen(interpreter: widget.interpreter, faceDetector: faceDetector,cameras:widget.cameras ,),
+      home: HomeScreen(interpreter: widget.interpreter, livenessInterpreter: widget.livenessInterpreter ,faceDetector: faceDetector,cameras:widget.cameras ,),
     );
   }
 }
+
+
+
+
+
+
 

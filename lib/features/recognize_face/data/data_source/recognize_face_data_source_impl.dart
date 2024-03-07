@@ -12,11 +12,14 @@ class RecognizeFaceDataSourceImpl implements RecognizeFaceDataSource{
 
 
   @override
-  Future<Map<String, List<dynamic>>> readMapFromSharedPreferences() async {
+  Future<Map<String, List<dynamic>>> readMapFromSharedPreferences(String nameOfJsonFile) async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonMap = prefs.getString('testMap');
+    // final jsonMap = prefs.getString('testMap');
+    // final jsonMap = prefs.getString('liveTraining');
+    final jsonMap = prefs.getString(nameOfJsonFile);
     if (jsonMap != null) {
       final decodedMap = Map<String, List<dynamic>>.from(json.decode(jsonMap));
+      print('Reading $nameOfJsonFile file for recognition(printed from recognize_face_datasource_impl)');
       return decodedMap;
     } else {
       return {};

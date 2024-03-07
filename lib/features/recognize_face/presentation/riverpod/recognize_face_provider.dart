@@ -24,50 +24,18 @@ class RecognizeFaceNotifier extends StateNotifier<BaseState>{
   RecognizeFaceUseCase useCase;
 
 
-  // Future<void> pickImagesAndRecognize(Interpreter interpreter) async {
-  //
-  //   final ImagePicker _picker = ImagePicker();
-  //   late img.Image image;
-  //   List<XFile> selectedImages = [];
-  //
-  //
-  //
-  //
-  //
-  //   // Select an image for recognition
-  //   XFile? pickedImage = await _picker.pickImage(source: ImageSource.gallery);
-  //
-  //   // if (pickedImage != null) {
-  //   //   selectedImages.add(pickedImage);
-  //   // }
-  //   // detectionUseCase.detectFaces(selectedImages, faceDetector);
-  //
-  //   if (pickedImage != null) {
-  //     image = img.decodeImage(await pickedImage.readAsBytes())!;
-  //   }
-  //
-  //
-  //
-  //   if (image != null) {
-  //
-  //   await useCase.recognizeFace(image, interpreter);
-  //
-  //
-  //   }
-  // }
+
+  Future<void> pickImagesAndRecognize(img.Image image, Interpreter interpreter, String nameOfJsonFile) async {
 
 
 
-  Future<void> pickImagesAndRecognize(img.Image image, Interpreter interpreter) async {
-
-
-
-     final name =  await useCase.recognizeFace(image, interpreter);
+     final name =  await useCase.recognizeFace(image, interpreter, nameOfJsonFile);
 
      if(name.isNotEmpty){
+       // print('the name is $name');
        state = SuccessState(name: name);
      }else{
-        print('the name is $name');
+        // print('No match!');
        state = const ErrorState('No match!');
      }
 

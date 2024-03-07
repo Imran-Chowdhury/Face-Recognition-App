@@ -14,16 +14,22 @@ class TrainFaceDataSourceImpl implements TrainFaceDataSource{
 
 
   @override
-  saveOrUpdateJsonInSharedPreferences(String key, listOfOutputs) async{
+  saveOrUpdateJsonInSharedPreferences(String key, listOfOutputs,String nameOfJsonFile ) async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     // Check if the JSON file exists in SharedPreferences
-    String? existingJsonString = prefs.getString('testMap');
+    // String? existingJsonString = prefs.getString('testMap');
+    // String? existingJsonString = prefs.getString('liveTraining');
+    String? existingJsonString = prefs.getString(nameOfJsonFile);
+
 
     if (existingJsonString == null) {
       // If the JSON file doesn't exist, create a new one with the provided key and value
       Map<String, dynamic> newJsonData = {key: listOfOutputs};
-      await prefs.setString('testMap', jsonEncode(newJsonData));
+      // await prefs.setString('testMap', jsonEncode(newJsonData));
+      // await prefs.setString('liveTraining', jsonEncode(newJsonData));
+      await prefs.setString(nameOfJsonFile, jsonEncode(newJsonData));
+
     } else {
       // If the JSON file exists, update it
       Map<String, dynamic> existingJson =
@@ -39,15 +45,20 @@ class TrainFaceDataSourceImpl implements TrainFaceDataSource{
       }
 
       // Save the updated JSON back to SharedPreferences
-      await prefs.setString('testMap', jsonEncode(existingJson));
-      dynamic printMap = await readMapFromSharedPreferences();
+      // await prefs.setString('testMap', jsonEncode(existingJson));
+      // await prefs.setString('liveTraining', jsonEncode(existingJson));
+      await prefs.setString(nameOfJsonFile, jsonEncode(existingJson));
+      dynamic printMap = await readMapFromSharedPreferences(nameOfJsonFile);
+      print('The name of the file is $nameOfJsonFile');
       print(printMap);
     }
   }
   @override
-  Future<Map<String, List<dynamic>>> readMapFromSharedPreferences() async {
+  Future<Map<String, List<dynamic>>> readMapFromSharedPreferences(String nameOfJsonFile) async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonMap = prefs.getString('testMap');
+    // final jsonMap = prefs.getString('testMap');
+    // final jsonMap = prefs.getString('liveTraining');
+    final jsonMap = prefs.getString(nameOfJsonFile);
     if (jsonMap != null) {
       final decodedMap = Map<String, List<dynamic>>.from(json.decode(jsonMap));
       // final resultMap = decodedMap.map((key, value) {

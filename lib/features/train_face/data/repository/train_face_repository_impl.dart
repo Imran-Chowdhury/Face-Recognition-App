@@ -17,7 +17,7 @@ class TrainFaceRepositoryImpl implements TrainFaceRepository {
 
 
 @override
- Future<void> getOutputList(String name,List trainings, Interpreter interpreter)async {
+ Future<void> getOutputList(String name,List trainings, Interpreter interpreter,String nameOfJsonFile)async {
 
   List inputs = [];
    List  finalOutputList = [];
@@ -28,7 +28,8 @@ class TrainFaceRepositoryImpl implements TrainFaceRepository {
        List input = [];
 
 
-       input = imageToByteListFloat32(112, 128, 128, trainings[i]);
+       // input = imageToByteListFloat32(112, 128, 128, trainings[i]);
+       input = imageToByteListFloat32(112, 127.5, 127.5, trainings[i]);
        input = input.reshape([1, 112, 112, 3]);
        inputs.add(input);
      }
@@ -49,26 +50,14 @@ class TrainFaceRepositoryImpl implements TrainFaceRepository {
        finalOutputList.add(e);
      }
 
-     await dataSource.saveOrUpdateJsonInSharedPreferences(name, finalOutputList);
+
+     await dataSource.saveOrUpdateJsonInSharedPreferences(name, finalOutputList, nameOfJsonFile );
+   //   await dataSource.saveOrUpdateJsonInSharedPreferences(name, finalOutputList, 'testMap');
+     // await dataSource.saveOrUpdateJsonInSharedPreferences(name, finalOutputList,'galleryData' );
    }catch(e){
      rethrow;
    }
 
-
-  // var e1 = List.from(outputs[0].reshape([192]));
-  // var e2 = List.from(outputs[1].reshape([192]));
-  // var e3 = List.from(outputs[2].reshape([192]));
-  // var e4 = List.from(outputs[3].reshape([192]));
-  // var e5 = List.from(outputs[4].reshape([192]));
-  // var e6 = List.from(outputs[5].reshape([192]));
-  // var e7 = List.from(outputs[6].reshape([192]));
-  // var e8 = List.from(outputs[7].reshape([192]));
-  // var e9 = List.from(outputs[8].reshape([192]));
-  // var e10 = List.from(outputs[9].reshape([192]));
-  //
-  //
-  // // dynamic valuesList = [e1,e2,e3,e4,e5,];
-  // dynamic valuesList = [e1,e2,e3,e4,e5,e6,e7,e8,e9,e10];
 
 
  }

@@ -24,7 +24,7 @@ class TrainFaceNotifier extends StateNotifier<BaseState>{
     required this.useCase
 }):super(const InitialState());
 
-  Future<void> pickImagesAndTrain(String name, Interpreter interpreter, List resizedImageList) async {
+  Future<void> pickImagesAndTrain(String name, Interpreter interpreter, List resizedImageList, String nameOfJsonFile) async {
 
 
     late img.Image image;
@@ -52,7 +52,7 @@ class TrainFaceNotifier extends StateNotifier<BaseState>{
       // print(images.length);
 
       // useCase.getImagesList(name, images, interpreter);
-     await useCase.getImagesList(name, resizedImageList, interpreter);
+     await useCase.getImagesList(name, resizedImageList, interpreter, nameOfJsonFile);
     }catch(e){
       rethrow;
     }

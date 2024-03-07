@@ -16,9 +16,9 @@ class TrainFaceUseCase{
   TrainFaceUseCase({required this.repository});
   TrainFaceRepository repository;
 
-  Future<void> getImagesList(String name, List trainings,Interpreter interpreter)async {
+  Future<void> getImagesList(String name, List trainings,Interpreter interpreter,String nameOfJsonFile)async {
     try {
-      await repository.getOutputList(name, trainings, interpreter);
+      await repository.getOutputList(name, trainings, interpreter, nameOfJsonFile);
     }catch(e){
       rethrow;
     }

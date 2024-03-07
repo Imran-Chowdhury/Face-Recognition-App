@@ -21,42 +21,15 @@ class RecognizeFaceRepositoryImpl implements RecognizeFaceRepository{
  RecognizeFaceDataSource dataSource;
 
 
-
-  // @override
-  // Future<void> recognizeFace(img.Image image, Interpreter interpreter) async {
-  //   // img.Image resizedImage = img.copyResize(image, width: 112, height: 112);
-  //
-  //   List input =  imageToByteListFloat32(112, 128, 128, image);
-  //   input = input.reshape([1, 112, 112, 3]);
-  //
-  //
-  //
-  //
-  //
-  //   // Initialize an empty list for outputs
-  //   List output = List.filled(1 * 192, null, growable: false).reshape([1, 192]);
-  //
-  //   interpreter.run(input, output);
-  //   output = output.reshape([192]);
-  //
-  //
-  //
-  //   var  finalOutput = List.from(output);
-  //   print(finalOutput);
-  //   Map<String, List<dynamic>> trainings = await dataSource.readMapFromSharedPreferences();
-  //   recognition(trainings, finalOutput, 0.8);
-  // }
-
-
-
-
-
   @override
-  Future<String> recognizeFace(img.Image image, Interpreter interpreter) async {
+  Future<String> recognizeFace(img.Image image, Interpreter interpreter, String nameOfJsonFile) async {
     // img.Image resizedImage = img.copyResize(image, width: 112, height: 112);
 
-    List input =  imageToByteListFloat32(112, 128, 128, image);
+    // List input =  imageToByteListFloat32(112, 128, 128, image);
+    // print('The input is $input');
+    List input =  imageToByteListFloat32(112, 127.5, 127.5, image);
     input = input.reshape([1, 112, 112, 3]);
+
 
 
 
@@ -66,14 +39,19 @@ class RecognizeFaceRepositoryImpl implements RecognizeFaceRepository{
     List output = List.filled(1 * 192, null, growable: false).reshape([1, 192]);
 
     interpreter.run(input, output);
+    // interpreter.run([input], output);
     output = output.reshape([192]);
 
 
 
     var  finalOutput = List.from(output);
     print(finalOutput);
-    Map<String, List<dynamic>> trainings = await dataSource.readMapFromSharedPreferences();
-   return recognition(trainings, finalOutput, 0.8);
+    // Map<String, List<dynamic>> trainings = await dataSource.readMapFromSharedPreferences('testMap');
+    Map<String, List<dynamic>> trainings = await dataSource.readMapFromSharedPreferences(nameOfJsonFile);
+   // return recognition(trainings, finalOutput, 0.8);
+   //  return recognition(trainings, finalOutput, 0.7);
+   //  return recognition(trainings, finalOutput, 0.62);
+    return recognition(trainings, finalOutput, 0.58);
   }
   //
   // @override
@@ -130,6 +108,17 @@ class RecognizeFaceRepositoryImpl implements RecognizeFaceRepository{
           }
         }
       });
+      // print('the person is $matchedName');
+      // print('the minDistance is $minDistance');
+       if(matchedName == ''){
+         print('lalalallalala');
+         print('No match!');
+       }else{
+         print('lalalallalala');
+         print('the person is $matchedName');
+         print('the minDistance is $minDistance');
+       }
+
       return matchedName;
 
       // if (nearestKey.isNotEmpty) {

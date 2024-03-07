@@ -78,6 +78,10 @@ flutter:
     - assets/Imran_2.jpeg
     - assets/Imran_3.jpeg
     - assets/mobilefacenet.tflite
+    - assets/FaceDeSpoofing.tflite
+    - assets/FaceAntiSpoofing.tflite
+
+
 #    - assets/mobile_face_net.tflite
 
   #   - images/a_dot_burr.jpeg

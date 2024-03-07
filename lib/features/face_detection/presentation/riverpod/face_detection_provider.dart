@@ -7,8 +7,11 @@
 
 
 
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
+
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/base_state/base_state.dart';
@@ -40,14 +43,16 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
       if(operationType == 'Train from gallery'){
         //Selecting 5 images as XFile for Face Detection
         //Training
-        for (var i = 0; i <= 4; i++) {
+        // for (var i = 0; i <= 4; i++) {
+        //
+        //   XFile? pickedImage = await picker.pickImage(
+        //       source: ImageSource.gallery);
+        //   if (pickedImage != null) {
+        //     selectedImages.add(pickedImage);
+        //   }
+        // }
 
-          XFile? pickedImage = await picker.pickImage(
-              source: ImageSource.gallery);
-          if (pickedImage != null) {
-            selectedImages.add(pickedImage);
-          }
-        }
+        selectedImages = await picker.pickMultiImage();
         final stopwatch = Stopwatch()..start();
         final resizedImage = await useCase.detectFaces(selectedImages, faceDetector);
         state =   SuccessState(data: resizedImage);
@@ -64,14 +69,27 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
       }
       else if(operationType == 'Recognize from gallery'){
 
+
+
+
+
+
         //Selecting 1 image as XFile for Face Detection
         //Recognition
         selectedImages = [];
-        XFile? pickedImage = await picker.pickImage(
-            source: ImageSource.gallery);
-        if (pickedImage != null) {
-          selectedImages.add(pickedImage);
-        }
+        // XFile? pickedImage = await picker.pickImage(
+        //     source: ImageSource.gallery);
+        // if (pickedImage != null) {
+        //   selectedImages.add(pickedImage);
+        // }
+
+
+
+// selecting multiple pictures for testing and collecting data
+        selectedImages = await picker.pickMultiImage();
+
+
+
         final stopwatch = Stopwatch()..start();
         final resizedImage = await useCase.detectFaces(selectedImages, faceDetector);
         state =   SuccessState(data: resizedImage);
@@ -84,7 +102,7 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
       }
       else {
 
-        //5 XFiles captured from camera directly passed from the home screen ase capturedImages.
+        //Number of  XFiles captured from camera directly passed from the home screen ase capturedImages.
 
 
         final stopwatch = Stopwatch()..start();
