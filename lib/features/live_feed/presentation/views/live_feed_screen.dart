@@ -606,8 +606,11 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
 
        //For recognizing faces
        img.Image imgImage = convertCameraImageToImgImage(image, controller.description.lensDirection);
+       print('the width of the image for recognising from live feed ios ${imgImage.width}');
+       print('the height of the image for recognising from live feed ios ${imgImage.height}');
 
-       final faceDetected =  await detectController.detectFromLiveFeedForRecognition(inputImage, imgImage, widget.faceDetector);
+       final faceDetected =  await detectController.detectFromLiveFeedForRecognition([inputImage], [imgImage], widget.faceDetector);
+       // final faceDetected =  await detectController.detectFromLiveFeedForRecognition(inputImage, imgImage, widget.faceDetector);
 
 
        if(faceDetected.isNotEmpty){

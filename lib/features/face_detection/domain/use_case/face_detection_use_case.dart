@@ -24,8 +24,8 @@ class FaceDetectionUseCase {
     return await repository.detectFaces(selectedImages, faceDetector);
   }
 
-  Future<List> detectFacesFromLiveFeed(InputImage inputImage,img.Image image, FaceDetector faceDetector)async{
-
+  // Future<List> detectFacesFromLiveFeed(InputImage inputImage,img.Image image, FaceDetector faceDetector)async{
+  Future<List> detectFacesFromLiveFeed(List<InputImage> inputImage, List<img.Image> image,  FaceDetector faceDetector)async{
     return await repository.detectFacesFromLiveFeed(inputImage,image, faceDetector);
   }
 

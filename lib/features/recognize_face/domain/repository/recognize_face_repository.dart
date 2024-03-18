@@ -16,5 +16,7 @@ abstract class RecognizeFaceRepository{
 
   String recognition(Map<String, List<dynamic>> data, List<dynamic> foundList, double threshold);
 
+  double cosineSimilarity(List<double> vectorA, List<double> vectorB);
+
 
 }

@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 
 import 'package:tflite_flutter/tflite_flutter.dart' as TfLiteModel;
+import 'package:tflite_flutter/tflite_flutter.dart';
 
 
 
@@ -32,7 +33,7 @@ void main() async {
 }
 
 Future<TfLiteModel.Interpreter> loadModel() async {
-  return await TfLiteModel.Interpreter.fromAsset('assets/mobilefacenet.tflite');
+  return await TfLiteModel.Interpreter.fromAsset('assets/facenet.tflite');
   // return await TfLiteModel.Interpreter.fromAsset('assets/mobile_face_net.tflite');
   // mobile_face_net.tflite
 }
@@ -68,6 +69,12 @@ class _MyAppState extends State<MyApp> {
     print('THE FACENET MODEL NEEDS:');
     print(widget.interpreter.getInputTensors());
     print(widget.interpreter.getOutputTensors());
+    final inputType = widget.interpreter.getInputTensor(0).type;
+    final outputType = widget.interpreter.getOutputTensor(0).type;
+
+
+    print('Input type: $inputType');
+    print('Output type: $outputType');
 
 
     print('THE LIVENESS DETECTOR NEEDS:');

@@ -125,7 +125,8 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
 
 
 
- Future<List> detectFromLiveFeedForRecognition(InputImage inputImage, img.Image image,  FaceDetector faceDetector)async{
+ // Future<List> detectFromLiveFeedForRecognition(InputImage inputImage, img.Image image,  FaceDetector faceDetector)async{
+  Future<List> detectFromLiveFeedForRecognition(List<InputImage> inputImage, List<img.Image> image,  FaceDetector faceDetector)async{
 
     final croppedImagesList = await useCase.detectFacesFromLiveFeed(inputImage, image, faceDetector);
 
@@ -133,7 +134,7 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
    if(croppedImagesList.isEmpty){
      state = const ErrorState('No face detected');
    }else{
-     state = const SuccessState();
+     state = SuccessState(data: croppedImagesList);
    }
     return croppedImagesList;
 

@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:face/core/base_state/base_state.dart';
 import 'package:face/features/live_feed/presentation/views/live_feed_screen.dart';
+import 'package:face/features/train_face/domain/train_face_use_case.dart';
 import 'package:image/image.dart' as img;
 import 'package:face/features/face_detection/presentation/riverpod/face_detection_provider.dart';
 import 'package:face/features/recognize_face/presentation/riverpod/recognize_face_provider.dart';
@@ -18,7 +19,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tflite_flutter/tflite_flutter.dart' as tf_lite;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
+import '../../../../core/utils/convert_camera_image_to_img_image.dart';
+import '../../../../core/utils/convert_camera_image_to_input_image.dart';
 import '../../../../core/utils/image_to_float32.dart';
+import '../../../live_feed/presentation/views/live_feed_burst_shots.dart';
 import '../../../live_feed/presentation/views/live_feed_training_screen.dart';
 
 class HomeScreen extends ConsumerWidget{
@@ -44,9 +48,14 @@ class HomeScreen extends ConsumerWidget{
 //for deleting and printing name
 //     String fileName = 'galleryData';
 //     String fileName = 'galleryData2(th = 0.62)';
-    String fileName = 'liveTraining(Th = 0.58, mean = std = 127.5)';
+//     String fileName = 'liveTraining(Th = 0.58, mean = std = 127.5)'; //for now livefeeds datas are in this file
     // String fileName = 'testMap';
     // String fileName = 'liveGallery-live';
+    String fileName = 'liveTraining(with tflite helper)'; //for now livefeeds datas are in this file
+
+
+    List continuousImages = [];
+    bool listFilled = false;
 
 
 
@@ -173,7 +182,107 @@ class HomeScreen extends ConsumerWidget{
 
                   child: const Text('Capture and train image from live feed'),
                 ),
+
                 const SizedBox(height: 30.0,),
+                // ElevatedButton(
+                //   onPressed: ()async {
+                //     if (_formKey.currentState!.validate()) {
+                //       final Map<String,
+                //           dynamic> mapCapturedImages = await Navigator.push(
+                //         context,
+                //         MaterialPageRoute(builder: (context) =>
+                //             CameraBurstCaptureScreen(cameras: cameras,)),
+                //       );
+                //
+                //       // {'images':capturedImages, 'camController': controller}
+                //       List<CameraImage> camImages = mapCapturedImages['images'];
+                //       CameraController camController = mapCapturedImages['camController'];
+                //
+                //       List<dynamic> imgList =[];
+                //
+                //       for (var i = 0; i < camImages.length; i++) {
+                //         //For detecting faces
+                //         InputImage inputImage = convertCameraImageToInputImage(
+                //             camImages[i], camController);
+                //
+                //         //For recognizing faces
+                //         img.Image imgImage = convertCameraImageToImgImage(
+                //             camImages[i],
+                //             camController.description.lensDirection);
+                //
+                //         //detects faces from each image. one loop for one image
+                //         final faceDetected  = await detectController.detectFromLiveFeedForRecognition(inputImage, imgImage, faceDetector);
+                //         //listing all the face images one by one
+                //         imgList.add(faceDetected[0]);
+                //
+                //       }
+                //       print('The imglist length is ${imgList.length}');
+                //       // passing the list of all face images for saving in database.
+                //      await trainController.pickImagesAndTrain(personName, interpreter, imgList, fileName);
+                //
+                //
+                //     }
+                //   },
+                //
+                //
+                //   child: const Text('Capture burst shots and train image'),
+                // ),
+
+                ElevatedButton(
+                  onPressed: ()async {
+                    if (_formKey.currentState!.validate()) {
+                      final Map<String,
+                          dynamic> mapCapturedImages = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) =>
+                            CameraBurstCaptureScreen(cameras: cameras,)),
+                      );
+
+                      // {'images':capturedImages, 'camController': controller}
+                      List<CameraImage> camImages = mapCapturedImages['images'];
+                      CameraController camController = mapCapturedImages['camController'];
+
+                      // List<dynamic> imgList =[];
+                      List<InputImage> inputImageList = [];
+                      List<img.Image> imgImageList = [];
+
+                      for (var i = 0; i < camImages.length; i++) {
+                        //For detecting faces
+                        InputImage inputImage = convertCameraImageToInputImage(
+                            camImages[i], camController);
+
+                        //For recognizing faces
+                        img.Image imgImage = convertCameraImageToImgImage(
+                            camImages[i],
+                            camController.description.lensDirection);
+
+
+                        inputImageList.add(inputImage);
+                        imgImageList.add(imgImage);
+
+                        //detects faces from each image. one loop for one image
+
+                        //listing all the face images one by one
+                        // imgList.add(faceDetected[0]);
+
+                      }
+                      // print('The imglist length is ${imgList.length}');
+                      await detectController.detectFromLiveFeedForRecognition(inputImageList, imgImageList, faceDetector).then((imgList) async{
+                        // passing the list of all face images for saving in database.
+                        await trainController.pickImagesAndTrain(personName, interpreter, imgList, fileName);
+                      });
+
+
+
+                    }
+                  },
+
+
+                  child: const Text('Capture burst shots and train image'),
+                ),
+                const SizedBox(height: 30.0,),
+
+
                 ElevatedButton(
                   onPressed: ()async{
                     //detect and recognize face
@@ -228,18 +337,18 @@ class HomeScreen extends ConsumerWidget{
                   // },
 
                   // Deletes the mentioned file
-                  // onPressed: (){
-                  //  deleteJsonFromSharedPreferences(fileName);
-                  // },
+                  onPressed: (){
+                   deleteJsonFromSharedPreferences(fileName);
+                  },
 
-
+                  //
                   // onPressed: (){
-                  //     deleteNameFromSharedPreferences('Laboni',fileName);
+                  //     deleteNameFromSharedPreferences('Sylas',fileName);
                   //
                   // },
 
 
-                  onPressed: (){},
+                  // onPressed: (){},
                   child: const Text(' delete trainings'),
                 ),
 
@@ -257,13 +366,9 @@ class HomeScreen extends ConsumerWidget{
 
                 ElevatedButton(
                   onPressed: ()async{
-                    // List<CameraDescription> cameras;
+
                     List<CameraDescription>  cameras = await availableCameras();
-                    // CameraController controller = CameraController(
-                    //     cameras[1],
-                    //     ResolutionPreset.medium,
-                    //     enableAudio: false,
-                    //     imageFormatGroup: ImageFormatGroup.yuv420
+
                     // );
                     Navigator.push(
                       context,
@@ -360,7 +465,11 @@ class HomeScreen extends ConsumerWidget{
         // Access the corresponding value for each key
         dynamic value = testMap[key];
 
-        print('$key: $value');
+        // print('$key: $value');
+        for(int i = 0; i<value.length;i++){
+          print(' ${value[i]}');
+        }
+
       });
 
     } else {
