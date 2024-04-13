@@ -14,7 +14,7 @@ class TrainFaceDataSourceImpl implements TrainFaceDataSource{
 
 
   @override
-  saveOrUpdateJsonInSharedPreferences(String key, listOfOutputs,String nameOfJsonFile ) async{
+ Future<void> saveOrUpdateJsonInSharedPreferences(String key, listOfOutputs,String nameOfJsonFile ) async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     // Check if the JSON file exists in SharedPreferences
@@ -23,11 +23,15 @@ class TrainFaceDataSourceImpl implements TrainFaceDataSource{
     String? existingJsonString = prefs.getString(nameOfJsonFile);
 
 
+    for(int i  = 0; i<listOfOutputs.length; i++){
+      print('The $i st list of $key is ${listOfOutputs[i]} ');
+    }
+
+
     if (existingJsonString == null) {
       // If the JSON file doesn't exist, create a new one with the provided key and value
       Map<String, dynamic> newJsonData = {key: listOfOutputs};
-      // await prefs.setString('testMap', jsonEncode(newJsonData));
-      // await prefs.setString('liveTraining', jsonEncode(newJsonData));
+      // Map<String, List<List<double>>> newJsonData = {key: listOfOutputs};
       await prefs.setString(nameOfJsonFile, jsonEncode(newJsonData));
 
     } else {
@@ -48,13 +52,13 @@ class TrainFaceDataSourceImpl implements TrainFaceDataSource{
       // await prefs.setString('testMap', jsonEncode(existingJson));
       // await prefs.setString('liveTraining', jsonEncode(existingJson));
       await prefs.setString(nameOfJsonFile, jsonEncode(existingJson));
-      dynamic printMap = await readMapFromSharedPreferences(nameOfJsonFile);
+      dynamic printMap = await readMapFromSharedPreferencesFromTrainDataSource(nameOfJsonFile);
       print('The name of the file is $nameOfJsonFile');
       print(printMap);
     }
   }
   @override
-  Future<Map<String, List<dynamic>>> readMapFromSharedPreferences(String nameOfJsonFile) async {
+  Future<Map<String, List<dynamic>>> readMapFromSharedPreferencesFromTrainDataSource(String nameOfJsonFile) async {
     final prefs = await SharedPreferences.getInstance();
     // final jsonMap = prefs.getString('testMap');
     // final jsonMap = prefs.getString('liveTraining');

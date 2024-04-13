@@ -51,7 +51,8 @@ class HomeScreen extends ConsumerWidget{
 //     String fileName = 'liveTraining(Th = 0.58, mean = std = 127.5)'; //for now livefeeds datas are in this file
     // String fileName = 'testMap';
     // String fileName = 'liveGallery-live';
-    String fileName = 'liveTraining(with tflite helper)'; //for now livefeeds datas are in this file
+    // String fileName = 'liveTraining(with tflite helper)'; //for now livefeeds datas are in this file
+    String fileName = 'Training(input[1,160,160,3], output[1,512])';
 
 
     List continuousImages = [];
@@ -343,7 +344,7 @@ class HomeScreen extends ConsumerWidget{
 
                   //
                   // onPressed: (){
-                  //     deleteNameFromSharedPreferences('Sylas',fileName);
+                  //     deleteNameFromSharedPreferences('Imran',fileName);
                   //
                   // },
 
@@ -465,10 +466,10 @@ class HomeScreen extends ConsumerWidget{
         // Access the corresponding value for each key
         dynamic value = testMap[key];
 
-        // print('$key: $value');
-        for(int i = 0; i<value.length;i++){
-          print(' ${value[i]}');
-        }
+        print('$key: $value');
+        // for(int i = 0; i<value.length;i++){
+        //   print(' ${value[i]}');
+        // }
 
       });
 

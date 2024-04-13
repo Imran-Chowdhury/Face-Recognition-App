@@ -33,9 +33,13 @@ void main() async {
 }
 
 Future<TfLiteModel.Interpreter> loadModel() async {
-  return await TfLiteModel.Interpreter.fromAsset('assets/facenet.tflite');
+
+  // return await TfLiteModel.Interpreter.fromAsset('assets/facenet.tflite');
   // return await TfLiteModel.Interpreter.fromAsset('assets/mobile_face_net.tflite');
-  // mobile_face_net.tflite
+  // return await TfLiteModel.Interpreter.fromAsset('assets/FaceMobileNet_Float32.tflite');
+  return await TfLiteModel.Interpreter.fromAsset('assets/facenet_512.tflite');
+  // return await TfLiteModel.Interpreter.fromAsset('assets/facenet(face_recognizer_android_repo).tflite');
+  // facenet(face_recognizer_android_repo).tflite
 }
 
 Future<TfLiteModel.Interpreter> loadLivenessModel() async {

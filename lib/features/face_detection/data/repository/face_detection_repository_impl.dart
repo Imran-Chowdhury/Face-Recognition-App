@@ -80,12 +80,36 @@ class FaceDetectionRepositoryImpl implements FaceDetectionRepository {
         final int height = face[i].boundingBox.height.toInt();
 
 
+        final  leftEye = face[i].landmarks[FaceLandmarkType.leftEye];
+        final  rightEye = face[i].landmarks[FaceLandmarkType.rightEye];
 
+        final double? rotX = face[i].headEulerAngleX; // Head is tilted up and down rotX degrees
+        final double? rotY = face[i].headEulerAngleY; // Head is rotated to the right rotY degrees
+        final double? rotZ = face[i].headEulerAngleZ; // Head is tilted sideways rotZ degrees
+
+        print('The X rotation is $rotX');
+        print('The Y rotation is $rotY');
+        print('The Z rotation is $rotZ');
+        print('The right eye position is $rightEye');
+        print('The left eye position is $leftEye');
+
+
+
+        //final matrix = img.Matrix4.rotationZ(-rotZ * (3.14159 / 180)); // Convert degrees to radians
+
+        // Apply the transformation to the image
+        // final img.Image  image = img.copyRotate(decodedImg, 0, matrix: matrix);
+        // final img.Image  rotatedimage = img.copyRotate(decodedImg, rotZ as num );
 
         final img.Image croppedImg = img.copyCrop(decodedImg, left, top, width, height);
-        // final img.Image resizedImage = img.copyResize(croppedImg, width: 112, height: 112);
-        // resizedImageList.add(resizedImage);
+        final img.Image  rotatedimage = img.copyRotate(croppedImg, rotZ as num );
+
+
+        // final img.Image croppedImg = img.copyCrop(rotatedimage, left, top, width, height);
+
+
         croppedImageList.add(croppedImg);
+        // croppedImageList.add(rotatedimage);
 
       }
     }catch(e) {rethrow;}

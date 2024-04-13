@@ -750,7 +750,7 @@ packages:
     source: hosted
     version: "0.0.2"
   tflite_flutter_plus:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: tflite_flutter_plus
       sha256: "72c7363df4be932541b82f8bc7e544df343f6dea1f6e614a3efa2a7dd73dff2e"

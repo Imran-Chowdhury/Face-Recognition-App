@@ -15,6 +15,7 @@ abstract class RecognizeFaceRepository{
   Future<String> recognizeFace(img.Image image, Interpreter interpreter, String nameOfJsonFile);
 
   String recognition(Map<String, List<dynamic>> data, List<dynamic> foundList, double threshold);
+  // String recognition(Map<String, List<List<double>>> data, List<double> foundList, double threshold);
 
   double cosineSimilarity(List<double> vectorA, List<double> vectorB);
 

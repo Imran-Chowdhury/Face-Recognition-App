@@ -59,13 +59,13 @@ class _CameraCaptureScreenState extends ConsumerState<CameraBurstCaptureScreen> 
 
 
     counter++;
-         if(counter%15==0){
+         if(counter%10==0){
            cameraImages.add(image);
          }
 
 
-       //for 40 images
-      if(cameraImages.length>39){
+       //for 50 images
+      if(cameraImages.length>49){
         print('The length of captured image is ${cameraImages.length}');
         controller.stopImageStream();
 
