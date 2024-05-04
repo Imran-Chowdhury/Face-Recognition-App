@@ -1,12 +1,18 @@
 
-import 'dart:async';
+
+
+
+
+import 'dart:isolate';
 import 'dart:math';
-import 'dart:typed_data';
+
 
 import 'package:camera/camera.dart';
 import 'package:face/core/base_state/base_state.dart';
-import 'package:flutter/cupertino.dart';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_isolate/flutter_isolate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image/image.dart' as img;
@@ -21,17 +27,34 @@ import 'package:tflite_flutter/tflite_flutter.dart' as tf_lite;
 
 
 
+@pragma('vm:entry-point')
+void convertedImage(List imageList)async{
+  // List<CameraDescription> cameras = await availableCameras();
+  // final direction = CameraController(cameras[1],
+  //   // widget.cameras[0],
+  //   // ResolutionPreset.low,
+  //   // ResolutionPreset.medium,
+  //   ResolutionPreset.high,
+  //   // ResolutionPreset.veryHigh,
+  //   enableAudio: false,
+  // ).description.lensDirection;
+
+  final img1 = convertCameraImageToImgImage(imageList[0] as CameraImage, CameraLensDirection.front);
+  // return img1;
+}
 
 
 
 class LiveFeedScreen extends ConsumerStatefulWidget {
 
-  LiveFeedScreen({Key? key, required this.detectionController, required this.faceDetector, required this.cameras, required this.interpreter, required this.livenessInterpreter, required this.nameOfJsonFile}) : super(key: key);
+  LiveFeedScreen({Key? key,required this.isolateInterpreter, required this.detectionController, required this.faceDetector, required this.cameras, required this.interpreter, required this.livenessInterpreter, required this.nameOfJsonFile}) : super(key: key);
 
   final FaceDetectionNotifier detectionController;
   final FaceDetector faceDetector;
   late List<CameraDescription> cameras;
   final tf_lite.Interpreter interpreter;
+  final tf_lite.IsolateInterpreter isolateInterpreter;
+
   final tf_lite.Interpreter livenessInterpreter;
   late String nameOfJsonFile;
 
@@ -45,8 +68,8 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
   late CameraController controller;
   int numberOfFrames  = 0;
   // int frameSkipCount = 15;
-  int frameSkipCount = 25;
-  // int frameSkipCount = 40;
+  // int frameSkipCount = 25;
+  int frameSkipCount = 40;
   List frameList = [];
   String message = '';
 
@@ -56,6 +79,7 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
   void initState() {
     super.initState();
     initializeCameras();
+    print('Camera initialized');
   }
 
   Future<void> initializeCameras() async {
@@ -63,10 +87,10 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
     controller = CameraController(
       widget.cameras[1],
       // widget.cameras[0],
-      // ResolutionPreset.low,
+      ResolutionPreset.low,
       // ResolutionPreset.medium,
       // ResolutionPreset.high,
-      ResolutionPreset.veryHigh,
+      // ResolutionPreset.veryHigh,
       enableAudio: false,
 
 
@@ -153,6 +177,15 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
 
   Future<void> livenessDetection(img.Image image, Interpreter livenessInterpreter) async {
     // Convert image to a byte list with Float32 values
+
+
+    // Quantization Params of output tensor at index 0
+    QuantizationParams outputParams = livenessInterpreter.getOutputTensor(0).params;
+
+    print('The input quantization param is $livenessInterpreter');
+    print('The output quantization param is $outputParams');
+
+
     List input = imageToByteListFloat32ForLiveness(256, image);
     input = input.reshape([1, 256, 256, 3]);
     // print('the input length is ${input}');
@@ -163,10 +196,18 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
 
     var outputs = {0: output0, 1: output1};
     // Run inference
-    // livenessInterpreter.runForMultipleInputs([input], outputs);
+
+
     livenessInterpreter.runForMultipleInputs([input], outputs);
     // output = output.reshape([8]);
-    print(outputs);
+
+    // print('the datas in the liveness input is ${input.computeNumElements}');
+    // print('the shape of the liveness input is ${input.shape}');
+    // print('The ouput of liveness detection is ${output0.computeNumElements}');
+    print('Number of elements in the input tensor: ${input.length}');
+    print('Number of elements in the output tensor: ${output0.length}');
+    print('Shape of the input tensor: ${input.shape}');
+    print('Shape of the output tensor: ${output0.shape}');
 
 
     // Convert output to a list for further processing if needed
@@ -232,12 +273,13 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
         // buffer[pixelIndex++] = img.getBlue(pixel) / 256.0;
 
 
-        buffer[pixelIndex++] = (img.getRed(pixel) - 255.5) / 255.5;
-        buffer[pixelIndex++] = (img.getGreen(pixel) -255.5)/ 255.5;
-        buffer[pixelIndex++] = (img.getBlue(pixel) -255.5) / 255.5;
+        buffer[pixelIndex++] = (img.getRed(pixel) - 127.5) / 127.5;
+        buffer[pixelIndex++] = (img.getGreen(pixel) -127.5)/ 127.5;
+        buffer[pixelIndex++] = (img.getBlue(pixel) -127.5) / 127.5;
       }
     }
-    return buffer;
+    return convertedBytes.buffer.asFloat32List();
+    // return buffer;
   }
 
 
@@ -250,6 +292,78 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
     }
     return sqrt(sum);
   }
+
+
+  Future<void> createIsolate(CameraImage image) async {
+    // Where I listen to the message from Mike's port
+    ReceivePort myReceivePort = ReceivePort();
+
+    // Spawn an isolate, passing my receivePort sendPort
+    Isolate.spawn<SendPort>(heavyComputationTask, myReceivePort.sendPort);
+
+    // Mike sends a senderPort for me to enable me to send him a message via his sendPort.
+    // I receive Mike's senderPort via my receivePort
+    SendPort mikeSendPort = await myReceivePort.first;
+
+    // I set up another receivePort to receive Mike's response.
+    ReceivePort mikeResponseReceivePort = ReceivePort();
+
+    // I send Mike a message using mikeSendPort. I send him a list,
+    // which includes my message, preferred type of coffee, and finally
+    // a sendPort from mikeResponseReceivePort that enables Mike to send a message back to me.
+    mikeSendPort.send([
+      image,
+      mikeResponseReceivePort.sendPort,
+    ]);
+
+    // I get Mike's response by listening to mikeResponseReceivePort
+    final mikeResponse = await mikeResponseReceivePort.first;
+    print("MIKE'S RESPONSE: ==== $mikeResponse");
+  }
+
+  void heavyComputationTask(SendPort mySendPort) async {
+    // Set up a receiver port for Mike
+    ReceivePort mikeReceivePort = ReceivePort();
+    List<CameraDescription> cameras = await availableCameras();
+
+    // Send Mike receivePort sendPort via mySendPort
+    mySendPort.send(mikeReceivePort.sendPort);
+
+    // Listen to messages sent to Mike's receive port
+    await for (var message in mikeReceivePort) {
+      if (message is List) {
+        // Extract data from message
+        final image = message[0];
+        final direction = CameraController(cameras[1],
+          // widget.cameras[0],
+          // ResolutionPreset.low,
+          // ResolutionPreset.medium,
+          ResolutionPreset.high,
+          // ResolutionPreset.veryHigh,
+          enableAudio: false,
+        ).description.lensDirection;
+        final SendPort mikeResponseSendPort = message[1];
+
+        // Perform heavy computation
+        final img1 = await convertCameraImageToImgImage(image, direction);
+
+        // Send back the result to the main isolate
+        mikeResponseSendPort.send(img1);
+      }
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -268,51 +382,80 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
 
 
     final detectController = ref.watch(faceDetectionProvider.notifier);
-    final detectState = ref.watch(faceDetectionProvider);
+    // final detectState = ref.watch(faceDetectionProvider);
     final recognizeController = ref.watch(recognizefaceProvider.notifier);
+
+
+
+
 
 
      //Image Streaming
     controller.startImageStream((image) async {
 
-     //
-     //  //For detecting faces
-     // InputImage inputImage = convertCameraImageToInputImage(image, controller);
-     //
-     // //For recognizing faces
-     // img.Image imgImage = convertCameraImageToImgImage(image, controller.description.lensDirection);
 
-    // final faceDetected =  await detectController.detectFromLiveFeedForRecognition(inputImage, imgImage, widget.faceDetector);
+      // print('The camera image format is ${image.format.group}');
+
+
+
+
+
+
+
+
 
      numberOfFrames++;
      if ( numberOfFrames % frameSkipCount == 0) {
        print('the number of frames are $numberOfFrames');
 
 
-       DateTime start = DateTime.now();
-
+       // DateTime start = DateTime.now();
+       final stopwatch = Stopwatch()..start();
        //For detecting faces
-       InputImage inputImage = convertCameraImageToInputImage(image, controller);
+      final  InputImage inputImage = convertCameraImageToInputImage(image, controller);
+
+
+
 
        //For recognizing faces
-       img.Image imgImage = convertCameraImageToImgImage(image, controller.description.lensDirection);
+      final  img.Image imgImage = convertCameraImageToImgImage(image, controller.description.lensDirection);
        print('the width of the image for recognising from live feed ios ${imgImage.width}');
        print('the height of the image for recognising from live feed ios ${imgImage.height}');
+       // stopwatch.stop();
+       // final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
+       // print('Image conversion time: $elapsedSeconds seconds');
+
+
+     // await createIsolate(image,);
+     //   await flutterCompute(convertedImage, [image]);
+
+
+
+
+
+
+
+
+
 
        final faceDetected =  await detectController.detectFromLiveFeedForRecognition([inputImage], [imgImage], widget.faceDetector);
-       // final faceDetected =  await detectController.detectFromLiveFeedForRecognition(inputImage, imgImage, widget.faceDetector);
+
 
 
        if(faceDetected.isNotEmpty){
+         print('Face Detected');
          // await livenessDetection(faceDetected[0], widget.livenessInterpreter);
-         await recognizeController.pickImagesAndRecognize(faceDetected [0], widget.interpreter, widget.nameOfJsonFile);
+
+         await recognizeController.pickImagesAndRecognize(faceDetected [0], widget.interpreter,widget.isolateInterpreter,  widget.nameOfJsonFile);
 
        }
-       DateTime end = DateTime.now();
-       Duration timeTaken = end.difference(start);
-       double milliSeconds = timeTaken.inMilliseconds.toDouble();
 
-       print('Time taken: $milliSeconds milliseconds');
+
+       stopwatch.stop();
+       final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
+       print('Detection and Recognition from live feed Execution Time: $elapsedSeconds seconds');
+
+       // print('Time taken: $milliSeconds milliseconds');
 
 
 
@@ -344,7 +487,7 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
       // 'No face Detected';
     }
     else{
-      message = 'No face Detected';
+      message = 'No face detected';
     }
 
     return Stack(
@@ -366,73 +509,6 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
     );
   }
 }
-
-
-//
-// class FaceDetectorPainter extends CustomPainter {
-//   FaceDetectorPainter(this.imageSize, this.results);
-//   final Size imageSize;
-//   late double scaleX, scaleY;
-//   late dynamic results;
-//   late Face face;
-//
-//   @override
-//   void paint(Canvas canvas, Size size) {
-//     final Paint paint = Paint()
-//       ..style = PaintingStyle.stroke
-//       ..strokeWidth = 3.0
-//       ..color = Colors.blue;
-//     for (String label in results.keys) {
-//       for (Face face in results[label]) {
-//         // face = results[label];
-//         scaleX = size.width / imageSize.width;
-//         scaleY = size.height / imageSize.height;
-//         canvas.drawRRect(
-//             _scaleRect(
-//                 rect: face.boundingBox,
-//                 imageSize: imageSize,
-//                 widgetSize: size,
-//                 scaleX: scaleX,
-//                 scaleY: scaleY),
-//             paint);
-//         TextSpan span = TextSpan(
-//             style: TextStyle(color: Colors.orange[300], fontSize: 15),
-//             text: label);
-//         TextPainter textPainter = TextPainter(
-//             text: span,
-//             textAlign: TextAlign.left,
-//             textDirection: TextDirection.ltr);
-//         textPainter.layout();
-//         textPainter.paint(
-//             canvas,
-//             Offset(
-//                 size.width - (60 + face.boundingBox.left.toDouble()) * scaleX,
-//                 (face.boundingBox.top.toDouble() - 10) * scaleY));
-//       }
-//     }
-//   }
-//
-//   @override
-//   bool shouldRepaint(FaceDetectorPainter oldDelegate) {
-//     return oldDelegate.imageSize != imageSize || oldDelegate.results != results;
-//   }
-// }
-//
-// RRect _scaleRect(
-//     {required Rect rect,
-//       required Size imageSize,
-//       required Size widgetSize,
-//       double? scaleX,
-//       double? scaleY}) {
-//   return RRect.fromLTRBR(
-//       (widgetSize.width - rect.left.toDouble() * scaleX!),
-//       rect.top.toDouble() * scaleY!,
-//       widgetSize.width - rect.right.toDouble() * scaleX,
-//       rect.bottom.toDouble() * scaleY,
-//       const Radius.circular(10));
-// }
-//
-
 
 
 

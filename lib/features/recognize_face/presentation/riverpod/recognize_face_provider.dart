@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
-import 'package:image_picker/image_picker.dart';
+
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 import '../../../../core/base_state/base_state.dart';
-import '../../../face_detection/domain/use_case/face_detection_use_case.dart';
+
 import '../../domain/use_case/recognize_face_use_case.dart';
 
 
@@ -24,20 +23,46 @@ class RecognizeFaceNotifier extends StateNotifier<BaseState>{
   RecognizeFaceUseCase useCase;
 
 
+  //
+  // Future<void> pickImagesAndRecognize(img.Image image, Interpreter interpreter, String nameOfJsonFile) async {
+  //
+  //
+  //
+  //    final name =  await useCase.recognizeFace(image, interpreter, nameOfJsonFile);
+  //
+  //    if(name.isNotEmpty){
+  //      // print('the name is $name');
+  //      state = SuccessState(name: name);
+  //    }else{
+  //       // print('No match!');
+  //      state = const ErrorState('No match!');
+  //    }
+  //
+  //
+  //
+  //
+  // }
 
-  Future<void> pickImagesAndRecognize(img.Image image, Interpreter interpreter, String nameOfJsonFile) async {
 
+  Future<void> pickImagesAndRecognize(img.Image image, Interpreter interpreter,IsolateInterpreter isolateInterpreter, String nameOfJsonFile) async {
 
+    final stopwatch = Stopwatch()..start();
 
-     final name =  await useCase.recognizeFace(image, interpreter, nameOfJsonFile);
+    final name =  await useCase.recognizeFace(image, interpreter, isolateInterpreter,  nameOfJsonFile);
 
-     if(name.isNotEmpty){
-       // print('the name is $name');
-       state = SuccessState(name: name);
-     }else{
-        // print('No match!');
-       state = const ErrorState('No match!');
-     }
+    stopwatch.stop();
+    final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
+
+    // Print the elapsed time in seconds
+    print('The Recognition Execution time: $elapsedSeconds seconds');
+
+    if(name.isNotEmpty){
+      // print('the name is $name');
+      state = SuccessState(name: name);
+    }else{
+      // print('No match!');
+      state = const ErrorState('No match!');
+    }
 
 
 

@@ -27,8 +27,10 @@ class RecognizeFaceDataSourceImpl implements RecognizeFaceDataSource{
       //   // Convert each value from List<dynamic> to List<double>
       //   return MapEntry(key, value.cast<double>());
       // });
-      print('Reading $nameOfJsonFile file for recognition(printed from recognize_face_datasource_impl)');
-      print(decodedMap);
+
+
+      // print('Reading $nameOfJsonFile file for recognition(printed from recognize_face_datasource_impl)');
+      // print(decodedMap);
       return decodedMap;
     } else {
       return {};

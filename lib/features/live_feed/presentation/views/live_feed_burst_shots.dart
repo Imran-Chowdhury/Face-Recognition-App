@@ -64,8 +64,8 @@ class _CameraCaptureScreenState extends ConsumerState<CameraBurstCaptureScreen> 
          }
 
 
-       //for 50 images
-      if(cameraImages.length>49){
+       //for 4 images
+      if(cameraImages.length>3){
         print('The length of captured image is ${cameraImages.length}');
         controller.stopImageStream();
 

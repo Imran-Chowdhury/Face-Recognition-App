@@ -12,10 +12,10 @@ abstract class RecognizeFaceRepository{
 
   double euclideanDistance(List e1, List e2);
 
-  Future<String> recognizeFace(img.Image image, Interpreter interpreter, String nameOfJsonFile);
+  Future<String> recognizeFace(img.Image image, Interpreter interpreter,IsolateInterpreter isolateInterpreter, String nameOfJsonFile);
+  // Future<String> recognizeFace(img.Image image, IsolateInterpreter isolateInterpreter, String nameOfJsonFile);
 
   String recognition(Map<String, List<dynamic>> data, List<dynamic> foundList, double threshold);
-  // String recognition(Map<String, List<List<double>>> data, List<double> foundList, double threshold);
 
   double cosineSimilarity(List<double> vectorA, List<double> vectorB);
 

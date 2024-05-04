@@ -29,7 +29,7 @@ Float32List imageToByteListFloat32(
 
     }
   }
-  print('the convertedbyte from imageToByteListFloat32 function is $convertedBytes');
+  // print('the convertedbyte from imageToByteListFloat32 function is $convertedBytes');
   return convertedBytes.buffer.asFloat32List();
 
 }

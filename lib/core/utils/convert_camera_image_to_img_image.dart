@@ -3,6 +3,7 @@ import 'package:image/image.dart' as img;
 
 
 img.Image convertCameraImageToImgImage(CameraImage image, CameraLensDirection dir){
+
   int width = image.width;
   int height = image.height;
   var bufferImg = img.Image(width, height); //  "create a buffer image"

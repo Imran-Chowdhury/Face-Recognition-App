@@ -27,32 +27,18 @@ class TrainFaceNotifier extends StateNotifier<BaseState>{
   Future<void> pickImagesAndTrain(String name, Interpreter interpreter, List resizedImageList, String nameOfJsonFile) async {
 
 
-    late img.Image image;
 
-    List images = [];
-    final ImagePicker picker = ImagePicker();
-    var count;
+
     try {
-      // Selecting 10 images for training
-
-
-      // for (var i = 0; i <= 4; i++) {
-      //
-      //   XFile? pickedImage = await picker.pickImage(
-      //       source: ImageSource.gallery);
-      //   if (pickedImage != null) {
-      //     image = img.decodeImage(await pickedImage.readAsBytes())!;
-      //   }
-      //
-      //   if (image != null) {
-      //     images.add(image);
-      //   }
-      // }
-      //
-      // print(images.length);
-
-      // useCase.getImagesList(name, images, interpreter);
-     await useCase.getImagesList(name, resizedImageList, interpreter, nameOfJsonFile);
+      state = const LoadingState();
+      // Selecting single or multiple images for training
+      if(resizedImageList.isEmpty){
+        print('An error ocured from trainProvider');
+        state = const ErrorState('No Face Detected');
+      }else{
+        await useCase.getImagesList(name, resizedImageList, interpreter, nameOfJsonFile);
+      }
+     // await useCase.getImagesList(name, resizedImageList, interpreter, nameOfJsonFile);
     }catch(e){
       rethrow;
     }

@@ -9,6 +9,7 @@
 
 import 'dart:async';
 
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 
@@ -41,21 +42,24 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
     try {
 
       if(operationType == 'Train from gallery'){
-        //Selecting 5 images as XFile for Face Detection
-        //Training
-        // for (var i = 0; i <= 4; i++) {
-        //
-        //   XFile? pickedImage = await picker.pickImage(
-        //       source: ImageSource.gallery);
-        //   if (pickedImage != null) {
-        //     selectedImages.add(pickedImage);
-        //   }
-        // }
 
         selectedImages = await picker.pickMultiImage();
+
+
         final stopwatch = Stopwatch()..start();
+
+        state = const LoadingState();
         final resizedImage = await useCase.detectFaces(selectedImages, faceDetector);
-        state =   SuccessState(data: resizedImage);
+
+        if(resizedImage.isEmpty){
+          print('No face Detected');
+          state = const ErrorState('An error occured');
+
+        }
+        else{
+          state =   SuccessState(data: resizedImage);
+        }
+
         stopwatch.stop();
         final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
 
@@ -91,8 +95,15 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
 
 
         final stopwatch = Stopwatch()..start();
+        state = const LoadingState();
         final resizedImage = await useCase.detectFaces(selectedImages, faceDetector);
-        state =   SuccessState(data: resizedImage);
+        if(resizedImage.isNotEmpty){
+          state =   SuccessState(data: resizedImage);
+        }else {
+          print('An error occured');
+          state = const ErrorState('An error occured while detecting face');
+        }
+
         stopwatch.stop();
         final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
 
@@ -127,11 +138,20 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
 
  // Future<List> detectFromLiveFeedForRecognition(InputImage inputImage, img.Image image,  FaceDetector faceDetector)async{
   Future<List> detectFromLiveFeedForRecognition(List<InputImage> inputImage, List<img.Image> image,  FaceDetector faceDetector)async{
+    final stopwatch = Stopwatch()..start();
 
+    state = const LoadingState();
     final croppedImagesList = await useCase.detectFacesFromLiveFeed(inputImage, image, faceDetector);
 
 
+    stopwatch.stop();
+    final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
+
+    // Print the elapsed time in seconds
+    print('The Detection Execution time: $elapsedSeconds seconds');
+
    if(croppedImagesList.isEmpty){
+
      state = const ErrorState('No face detected');
    }else{
      state = SuccessState(data: croppedImagesList);
