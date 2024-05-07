@@ -23,29 +23,13 @@ class RecognizeFaceNotifier extends StateNotifier<BaseState>{
   RecognizeFaceUseCase useCase;
 
 
-  //
-  // Future<void> pickImagesAndRecognize(img.Image image, Interpreter interpreter, String nameOfJsonFile) async {
-  //
-  //
-  //
-  //    final name =  await useCase.recognizeFace(image, interpreter, nameOfJsonFile);
-  //
-  //    if(name.isNotEmpty){
-  //      // print('the name is $name');
-  //      state = SuccessState(name: name);
-  //    }else{
-  //       // print('No match!');
-  //      state = const ErrorState('No match!');
-  //    }
-  //
-  //
-  //
-  //
-  // }
+
 
 
   Future<void> pickImagesAndRecognize(img.Image image, Interpreter interpreter,IsolateInterpreter isolateInterpreter, String nameOfJsonFile) async {
 
+
+    state = const LoadingState();
     final stopwatch = Stopwatch()..start();
 
     final name =  await useCase.recognizeFace(image, interpreter, isolateInterpreter,  nameOfJsonFile);
@@ -59,7 +43,7 @@ class RecognizeFaceNotifier extends StateNotifier<BaseState>{
     if(name.isNotEmpty){
       // print('the name is $name');
       state = SuccessState(name: name);
-    }else{
+    }else {
       // print('No match!');
       state = const ErrorState('No match!');
     }

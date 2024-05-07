@@ -10,7 +10,9 @@
 import 'dart:async';
 
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 
 import 'package:image_picker/image_picker.dart';
@@ -53,7 +55,7 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
 
         if(resizedImage.isEmpty){
           print('No face Detected');
-          state = const ErrorState('An error occured');
+          state = const ErrorState('No face detected');
 
         }
         else{
@@ -79,17 +81,12 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
 
 
         //Selecting 1 image as XFile for Face Detection
-        //Recognition
+
         selectedImages = [];
-        // XFile? pickedImage = await picker.pickImage(
-        //     source: ImageSource.gallery);
-        // if (pickedImage != null) {
-        //   selectedImages.add(pickedImage);
-        // }
 
 
 
-// selecting multiple pictures for testing and collecting data
+        // selecting multiple pictures for testing and collecting data
         selectedImages = await picker.pickMultiImage();
 
 
@@ -101,7 +98,7 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
           state =   SuccessState(data: resizedImage);
         }else {
           print('An error occured');
-          state = const ErrorState('An error occured while detecting face');
+          state = const ErrorState('No face detected');
         }
 
         stopwatch.stop();
@@ -118,7 +115,20 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
 
         final stopwatch = Stopwatch()..start();
         final resizedImage = await useCase.detectFaces(capturedImages!, faceDetector);
-        state =   SuccessState(data: resizedImage);
+        if(resizedImage.isNotEmpty){
+          state =   SuccessState(data: resizedImage);
+        }else{
+          state  = const ErrorState('No face detected');
+          // Fluttertoast.showToast(
+          //     msg: 'No face detected',
+          //     toastLength: Toast.LENGTH_LONG,
+          //     // gravity: ToastGravity.CENTER,
+          //     timeInSecForIosWeb: 1,
+          //     // backgroundColor: Colors.red,
+          //     textColor: Colors.white,
+          //     fontSize: 16.0
+          // );
+        }
         stopwatch.stop();
         final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
 

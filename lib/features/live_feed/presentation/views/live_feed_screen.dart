@@ -4,7 +4,7 @@
 
 
 import 'dart:isolate';
-import 'dart:math';
+
 
 
 import 'package:camera/camera.dart';
@@ -12,7 +12,7 @@ import 'package:face/core/base_state/base_state.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_isolate/flutter_isolate.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image/image.dart' as img;
@@ -126,50 +126,6 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
     super.dispose();
   }
 
-  //
-  //
-  //
-  //
-  //    var score =  euclideanDistance(realFloatingNumbers3, fakeFloatingNumbers2);
-  //  print('the real euclidean score distance is $score');
-  //
-  //
-  //   // var score =  euclideanDistance(realFloatingNumbers1, fakeFloatingNumbers1);
-  //   // print('the fake euclidean score distance is $score');
-  //
-  //
-  //   // for (var item in finalOutput) {
-  //   //   for (var row in item[0]) { // Accessing the nested list representing the 32x32 grid
-  //   //     for (var value in row) {
-  //   //       print(value); // Accessing the single value within each nested list
-  //   //     }
-  //   //   }
-  //   // }
-  //
-  //
-  //
-  //
-  // }
-  //
-  // Float32List imageToByteListFloat32ForLiveness(int inputSize, img.Image image) {
-  //   // Resize the image to match the inputSize
-  //   img.Image resizedImage = img.copyResize(image, width: inputSize, height: inputSize);
-  //
-  //   var convertedBytes = Float32List(1 * inputSize * inputSize * 6);
-  //   var buffer = Float32List.view(convertedBytes.buffer);
-  //   int pixelIndex = 0;
-  //
-  //   for (var y = 0; y < inputSize; y++) {
-  //     for (var x = 0; x < inputSize; x++) {
-  //       var pixel = resizedImage.getPixel(x, y);
-  //       buffer[pixelIndex++] = img.getRed(pixel) / 255; // Normalizing the values to [0, 1]
-  //       buffer[pixelIndex++] = img.getGreen(pixel) / 255;
-  //       buffer[pixelIndex++] = img.getBlue(pixel) / 255;
-  //
-  //     }
-  //   }
-  //   return buffer;
-  // }
 
 
 /////////// Using FaceAntiSpoofing.tflite ////////////////
@@ -201,54 +157,12 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
     livenessInterpreter.runForMultipleInputs([input], outputs);
     // output = output.reshape([8]);
 
-    // print('the datas in the liveness input is ${input.computeNumElements}');
-    // print('the shape of the liveness input is ${input.shape}');
-    // print('The ouput of liveness detection is ${output0.computeNumElements}');
     print('Number of elements in the input tensor: ${input.length}');
     print('Number of elements in the output tensor: ${output0.length}');
     print('Shape of the input tensor: ${input.shape}');
     print('Shape of the output tensor: ${output0.shape}');
 
 
-    // Convert output to a list for further processing if needed
-    // var finalOutput = List.from(output);
-    // print('The final output is $finalOutput');
-
-    // Print or process final output
-    // print('The liveness output is $finalOutput');
-    // double sum = 0.0; // Initialize sum
-    // for (var item in finalOutput) {
-    //   for (var row in item[0]) { // Accessing the nested list representing the 32x32 grid
-    //     for (var value in row) {
-    //       sum += value; // Accumulate sum of values
-    //       print(value); // Accessing the single value within each nested list
-    //     }
-    //   }
-    // }
-    //
-    // double mean = sum / (finalOutput.length * 32 * 32); // Compute mean
-    // print('Mean: $mean'); // Print mean
-
-
-
-
-
-
-
-
-
-
-    // var score =  euclideanDistance(realFloatingNumbers1, fakeFloatingNumbers1);
-    // print('the fake euclidean score distance is $score');
-
-
-    // for (var item in finalOutput) {
-    //   for (var row in item[0]) { // Accessing the nested list representing the 32x32 grid
-    //     for (var value in row) {
-    //       print(value); // Accessing the single value within each nested list
-    //     }
-    //   }
-    // }
 
 
 
@@ -283,88 +197,6 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
   }
 
 
-  double euclideanDistance(List e1, List e2) {
-
-
-    double sum = 0.0;
-    for (int i = 0; i < e1.length; i++) {
-      sum += pow((e1[i] - e2[i]), 2);
-    }
-    return sqrt(sum);
-  }
-
-
-  Future<void> createIsolate(CameraImage image) async {
-    // Where I listen to the message from Mike's port
-    ReceivePort myReceivePort = ReceivePort();
-
-    // Spawn an isolate, passing my receivePort sendPort
-    Isolate.spawn<SendPort>(heavyComputationTask, myReceivePort.sendPort);
-
-    // Mike sends a senderPort for me to enable me to send him a message via his sendPort.
-    // I receive Mike's senderPort via my receivePort
-    SendPort mikeSendPort = await myReceivePort.first;
-
-    // I set up another receivePort to receive Mike's response.
-    ReceivePort mikeResponseReceivePort = ReceivePort();
-
-    // I send Mike a message using mikeSendPort. I send him a list,
-    // which includes my message, preferred type of coffee, and finally
-    // a sendPort from mikeResponseReceivePort that enables Mike to send a message back to me.
-    mikeSendPort.send([
-      image,
-      mikeResponseReceivePort.sendPort,
-    ]);
-
-    // I get Mike's response by listening to mikeResponseReceivePort
-    final mikeResponse = await mikeResponseReceivePort.first;
-    print("MIKE'S RESPONSE: ==== $mikeResponse");
-  }
-
-  void heavyComputationTask(SendPort mySendPort) async {
-    // Set up a receiver port for Mike
-    ReceivePort mikeReceivePort = ReceivePort();
-    List<CameraDescription> cameras = await availableCameras();
-
-    // Send Mike receivePort sendPort via mySendPort
-    mySendPort.send(mikeReceivePort.sendPort);
-
-    // Listen to messages sent to Mike's receive port
-    await for (var message in mikeReceivePort) {
-      if (message is List) {
-        // Extract data from message
-        final image = message[0];
-        final direction = CameraController(cameras[1],
-          // widget.cameras[0],
-          // ResolutionPreset.low,
-          // ResolutionPreset.medium,
-          ResolutionPreset.high,
-          // ResolutionPreset.veryHigh,
-          enableAudio: false,
-        ).description.lensDirection;
-        final SendPort mikeResponseSendPort = message[1];
-
-        // Perform heavy computation
-        final img1 = await convertCameraImageToImgImage(image, direction);
-
-        // Send back the result to the main isolate
-        mikeResponseSendPort.send(img1);
-      }
-    }
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -395,12 +227,6 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
 
 
       // print('The camera image format is ${image.format.group}');
-
-
-
-
-
-
 
 
 
@@ -481,14 +307,20 @@ class _LiveFeedScreenState extends ConsumerState<LiveFeedScreen> {
       message = 'Recognized: ${recognizeState.name}';
     } else if (recognizeState is ErrorState  && detectState is SuccessState) {
       message = ' ${recognizeState.errorMessage}';
-    }else if(detectState is ErrorState){
+    } else if(detectState is ErrorState){
 
       message = detectState.errorMessage;
       // 'No face Detected';
     }
-    else{
-      message = 'No face detected';
-    }
+
+    // }else if(detectState is ErrorState){
+    //
+    //   message = detectState.errorMessage;
+    //   // 'No face Detected';
+    // }
+    // else{
+    //   message = 'No face detected';
+    // }
 
     return Stack(
       fit: StackFit.expand,

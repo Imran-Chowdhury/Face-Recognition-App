@@ -1,5 +1,7 @@
 
+import 'dart:io';
 
+import 'package:tflite_flutter/tflite_flutter.dart' as tf_lite;
 
 import 'dart:convert';
 
@@ -10,6 +12,7 @@ import 'package:face/core/base_state/base_state.dart';
 import 'package:face/core/utils/customButton.dart';
 import 'package:face/core/utils/validators/validators.dart';
 import 'package:face/features/live_feed/presentation/views/live_feed_screen.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:image/image.dart' as img;
 import 'package:face/features/face_detection/presentation/riverpod/face_detection_provider.dart';
@@ -19,7 +22,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tflite_flutter/tflite_flutter.dart' as tf_lite;
+
+import 'package:tflite_flutter/tflite_flutter.dart';
 
 
 import '../../../../core/utils/convert_camera_image_to_img_image.dart';
@@ -30,27 +34,133 @@ import '../../../live_feed/presentation/views/live_feed_training_screen.dart';
 
 
 
-class HomeScreen extends ConsumerWidget{
 
-  HomeScreen({required this.interpreter, required this. isolateInterpreter, required this.livenessInterpreter, required this.faceDetector, required this.cameras});
-  final tf_lite.Interpreter interpreter;
-  final tf_lite.IsolateInterpreter isolateInterpreter;
 
-  final tf_lite.Interpreter livenessInterpreter;
-  final FaceDetector faceDetector;
-  List<CameraDescription> cameras;
+
+
+
+// 1. extend [ConsumerStatefulWidget]
+class HomeScreen extends ConsumerStatefulWidget {
+
+
 
 
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+// 2. extend [ConsumerState]
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  late FaceDetector faceDetector;
+  late tf_lite.Interpreter interpreter;
+  late tf_lite.Interpreter livenessInterpreter;
+  late tf_lite.IsolateInterpreter isolateInterpreter;
+   List<CameraDescription> cameras = [];
+
+
+
+
+  @override
+  void initState() {
+    super.initState();
+    initialize();
+  }
+
+  void initialize() {
+    loadModelsAndDetectors();
+  }
+
+  Future<void> loadModelsAndDetectors() async {
+    // Load models and initialize detectors
+    interpreter = await loadModel();
+    isolateInterpreter = await IsolateInterpreter.create(address: interpreter.address);
+    livenessInterpreter = await loadLivenessModel();
+    cameras = await availableCameras();
+
+    // Initialize face detector
+    final faceDetectorOptions = FaceDetectorOptions(
+      minFaceSize: 0.2,
+      performanceMode: FaceDetectorMode.accurate, // or .fast
+    );
+    faceDetector = FaceDetector(options: faceDetectorOptions);
+  }
+
+  @override
+  void dispose() {
+    // Dispose resources
+
+    faceDetector.close();
+    interpreter.close();
+    isolateInterpreter.close();
+    super.dispose();
+  }
+
+
+
+  Future<tf_lite.Interpreter> loadModel() async {
+
+    InterpreterOptions interpreterOptions = InterpreterOptions();
+    // final processorNum =  Platform.numberOfProcessors;
+    // print('The number of processors are $processorNum');
+
+
+    if (Platform.isAndroid) {
+      interpreterOptions.addDelegate(XNNPackDelegate(options: XNNPackDelegateOptions(numThreads: Platform.numberOfProcessors)));
+    }
+
+
+    //
+    // if (Platform.isIOS) {
+    //   interpreterOptions.addDelegate(GpuDelegate());
+    // }
+
+    // final gpuDelegateV2 = tf_lite.GpuDelegateV2(
+    //     options: tf_lite.GpuDelegateOptionsV2(
+    //         isPrecisionLossAllowed: false,
+    //         inferencePreference: tf_lite.TfLiteGpuInferenceUsage.TFLITE_GPU_INFERENCE_PREFERENCE_FAST_SINGLE_ANSWER,
+    //         inferencePriority1: tf_lite.TfLiteGpuInferencePriority.minMemoryUsage,
+    //         inferencePriority2:tf_lite.TfLiteGpuInferencePriority.minLatency,
+    //         inferencePriority3: tf_lite.TfLiteGpuInferencePriority.auto,
+    //         maxDelegatePartitions: 1)
+    // );
+
+     // GpuDelegateV2 gpuDelegateV2 = tf_lite.GpuDelegateV2(options: tf_lite.GpuDelegateOptionsV2());
+     // interpreterOptions.addDelegate(gpuDelegateV2);
+
+
+
+
+    // return await TfLiteModel.Interpreter.fromAsset('assets/facenet.tflite');
+    // return await TfLiteModel.Interpreter.fromAsset('assets/mobile_face_net.tflite');
+    // return await TfLiteModel.Interpreter.fromAsset('assets/FaceMobileNet_Float32.tflite');
+    return await tf_lite.Interpreter.fromAsset('assets/facenet_512.tflite',
+      options: interpreterOptions..threads = Platform.numberOfProcessors,
+    );
+    // return await TfLiteModel.Interpreter.fromAsset('assets/facenet(face_recognizer_android_repo).tflite');
+    // facenet(face_recognizer_android_repo).tflite
+  }
+
+  Future<tf_lite.Interpreter> loadLivenessModel() async {
+    // return await TfLiteModel.Interpreter.fromAsset('assets/FaceDeSpoofing.tflite');
+    return await tf_lite.Interpreter.fromAsset('assets/FaceAntiSpoofing.tflite');
+
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+
+
+
     late String personName;
     final _formKey = GlobalKey<FormState>();
 
     final detectController = ref.watch(faceDetectionProvider.notifier);
     final detectState = ref.watch(faceDetectionProvider);
     final trainController = ref.watch(trainFaceProvider.notifier);
-    // final trainState = ref.watch(trainFaceProvider);
+    final trainState = ref.watch(trainFaceProvider);
     final recognizeController = ref.watch(recognizefaceProvider.notifier);
     final recognizeState = ref.watch(recognizefaceProvider);
     final TextEditingController textFieldController = TextEditingController();
@@ -71,7 +181,12 @@ class HomeScreen extends ConsumerWidget{
 
 
 
-
+// Function to capitalize the first letter of a string
+    String capitalizeFirstLetter(String string) {
+      return string.isNotEmpty
+          ? string[0].toUpperCase() + string.substring(1)
+          : string;
+    }
 
 
     Uint8List convertImageToUint8List(img.Image image) {
@@ -89,15 +204,28 @@ class HomeScreen extends ConsumerWidget{
     debugPrint('the length of the camera is ${cameras.length}');
 
 
-    // if (detectState is ErrorState) {
-    //   // Show a Snackbar with an error message
-    //   print("ERRRORRR");
-    //   final snackBar = SnackBar(
-    //     content: Text(detectState.errorMessage),
+    // if(detectState is ErrorState) {
+    //   Fluttertoast.showToast(
+    //       msg: detectState.errorMessage,
+    //       toastLength: Toast.LENGTH_LONG,
+    //       // gravity: ToastGravity.CENTER,
+    //       timeInSecForIosWeb: 1,
+    //       // backgroundColor: Colors.red,
+    //       textColor: Colors.white,
+    //       fontSize: 16.0
     //   );
-    //   ScaffoldMessenger.of(context).showSnackBar(snackBar);
     // }
-
+    // if(trainState is ErrorState){
+    //   Fluttertoast.showToast(
+    //       msg: '${trainState.errorMessage}trainstate',
+    //       toastLength: Toast.LENGTH_LONG,
+    //       // gravity: ToastGravity.CENTER,
+    //       timeInSecForIosWeb: 1,
+    //       // backgroundColor: Colors.red,
+    //       textColor: Colors.white,
+    //       fontSize: 16.0
+    //   );
+    // }
 
 
     return Scaffold(
@@ -123,19 +251,19 @@ class HomeScreen extends ConsumerWidget{
             //   ),
             // ),
             const Padding(
-             padding: EdgeInsets.only(top: 50,bottom: 40),
+              padding: EdgeInsets.only(top: 50,bottom: 40),
               // padding: EdgeInsets.only(top: (height*0.07)),
-             child: Center(
-               child: Text(
-                 'Face Recognizer',
-                 style: TextStyle(
-                   color: Colors.white,
-                   fontSize: 30.0,
-                   fontWeight: FontWeight.bold
-                 ),
-               ),
-             ),
-           ),
+              child: Center(
+                child: Text(
+                  'Face-Recognizer',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 30.0,
+                      fontWeight: FontWeight.bold
+                  ),
+                ),
+              ),
+            ),
 
             // const SizedBox(height: 10.0,),
             Form(
@@ -196,7 +324,8 @@ class HomeScreen extends ConsumerWidget{
                         ),
                       ),
                       onChanged: (value) {
-                        personName = value;
+                        personName = value.trim();
+
                       },
                       validator: Validator.personNameValidator,
                     ),
@@ -213,7 +342,7 @@ class HomeScreen extends ConsumerWidget{
                                 formKey: _formKey,
                                 detectController: detectController,
                                 trainController: trainController,
-                                personName:personName,
+                                personName:personName.trim(),
                                 fileName: fileName );
                           }
                         },
@@ -284,7 +413,7 @@ class HomeScreen extends ConsumerWidget{
                         icon: const Icon(Icons.delete,color: Colors.white,),
                         onPressed: (){
                           if (_formKey.currentState!.validate()) {
-                            deleteNameFromSharedPreferences(personName,fileName);
+                            deleteNameFromSharedPreferences(textFieldController, personName,fileName);
                           }
                         },
                       ),
@@ -299,159 +428,19 @@ class HomeScreen extends ConsumerWidget{
                   ),
 
 
-                  // CustomButton(onPressed: (){}, name: 'Gallery'),
+
 
 
                 ],
-                // children: [
-                //   TextFormField(
-                //     controller: textFieldController,
-                //     decoration: InputDecoration(
-                //       hintText: 'Enter Name',
-                //       labelText: 'Name',
-                //       border: OutlineInputBorder(
-                //         borderRadius: BorderRadius.circular(15.0), // Adjust border radius
-                //         borderSide: const BorderSide(width: 2.0), // Adjust border thickness
-                //       ),
-                //     ),
-                //     onChanged: (value) {
-                //        personName = value;
-                //
-                //     },
-                //
-                //     validator: Validator.personNameValidator,
-                //   ),
-                //   ElevatedButton(
-                //
-                //     onPressed: (){
-                //       if (_formKey.currentState!.validate()) {
-                //         trainFromGallery(
-                //             formKey: _formKey,
-                //             detectController: detectController,
-                //             trainController: trainController,
-                //             personName:personName,
-                //             fileName: fileName );
-                //       }
-                //     },
-                //
-                //
-                //     child: const Text('Pick and Train Images'),
-                //   ),
-                //   const SizedBox(height: 30.0,),
-                //   // CustomButton(onPressed: (){}, name: 'Gallery',),
-                //
-                //
-                //
-                //   ElevatedButton(
-                //
-                //       onPressed: (){
-                //
-                //         if (_formKey.currentState!.validate()) {
-                //           captureAndTrainImage(formKey: _formKey,
-                //               context: context,
-                //               detectController: detectController,
-                //               trainController: trainController,
-                //               personName: personName,
-                //               fileName: fileName);
-                //         }
-                //
-                //       },
-                //
-                //     child: const Text('Capture and train image from live feed'),
-                //   ),
-                //
-                //   const SizedBox(height: 30.0,),
-                //
-                //   ElevatedButton(
-                //     onPressed: ()async {
-                //       if (_formKey.currentState!.validate()) {
-                //
-                //         burstShotTraining(context: context,detectController: detectController,
-                //           trainController: trainController,personName: personName,fileName: fileName);
-                //
-                //
-                //
-                //
-                //       }
-                //     },
-                //
-                //
-                //     child: const Text('Capture burst shots and train image'),
-                //   ),
-                //   const SizedBox(height: 30.0,),
-                //
-                //
-                //   ElevatedButton(
-                //     onPressed: ()async{
-                //
-                //
-                //       recognizeImage(detectController: detectController,recognizeController: recognizeController, fileName: fileName);
-                //
-                //
-                //
-                //
-                //     },
-                //     child: const Text('Recognize Image'),
-                //   ),
-                //   const SizedBox(height: 30.0,),
-                //
-                //
-                //   ElevatedButton(
-                //
-                //
-                //
-                //
-                //
-                //     // Deletes the mentioned file
-                //     // onPressed: (){
-                //     //  deleteJsonFromSharedPreferences(fileName);
-                //     // },
-                //
-                //     //
-                //     onPressed: (){
-                //       if (_formKey.currentState!.validate()) {
-                //         deleteNameFromSharedPreferences(personName,fileName);
-                //       }
-                //
-                //     },
-                //
-                //
-                //     // onPressed: (){},
-                //     child: const Text(' delete trainings'),
-                //   ),
-                //
-                //   const SizedBox(height: 30.0,),
-                //
-                //   ElevatedButton(
-                //     onPressed: (){
-                //       getKeysFromTestMap(fileName);
-                //     },
-                //
-                //
-                //
-                //
-                //     child: const Text(' Print the Keys'),
-                //   ),
-                //   const SizedBox(height: 30.0,),
-                //
-                //
-                //
-                //   ElevatedButton(
-                //     onPressed: (){
-                //       goToLiveFeedScreen(context, detectController,fileName);
-                //     },
-                //     child: const Text(' Live Feed Recognition'),
-                //   ),
-                //   const SizedBox(height: 30.0,),
-                //
-                //
-                //
-                //
-                // ],
+
               ),
             ),
+
+
+
+
             if(detectState is LoadingState)
-             const CircularProgressIndicator(),
+              const CircularProgressIndicator(),
 
 
             if(detectState is SuccessState)
@@ -486,14 +475,48 @@ class HomeScreen extends ConsumerWidget{
 
             const SizedBox(height: 10.0,),
 
-            if(recognizeState is SuccessState)
+
+
+            // if(trainState is SuccessState)
+            //   Center(child: Text(trainState.name,
+            //     style: const  TextStyle(
+            //       fontSize: 25,
+            //       fontWeight: FontWeight.bold,
+            //       color: Colors.white,
+            //     ),
+            //   ),
+            //   ),
+
+
+
+            if(recognizeState is SuccessState && detectState is SuccessState)
               Center(child: Text(recognizeState.name,
-              style: const  TextStyle(
-                fontSize: 25,
+                style: const  TextStyle(
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+                  color: Colors.white,
                 ),
+              ),
+              ),
+
+            if(recognizeState is ErrorState)
+              Center(child: Text(recognizeState.errorMessage,
+                style: const  TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              ),
+
+            if(detectState is ErrorState)
+              Center(child: Text(detectState.errorMessage,
+                style: const  TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
               ),
 
 
@@ -502,6 +525,7 @@ class HomeScreen extends ConsumerWidget{
       ),
     );
   }
+
 
 
 
@@ -516,6 +540,7 @@ class HomeScreen extends ConsumerWidget{
       // Delete the key (file) from SharedPreferences
       prefs.remove(nameOfJsonFile);
       print('deleted $nameOfJsonFile');
+
     } else {
       print('$nameOfJsonFile does not exist in SharedPreferences.');
     }
@@ -555,7 +580,7 @@ class HomeScreen extends ConsumerWidget{
   }
 
 
-  Future<void> deleteNameFromSharedPreferences(String name, String nameOfJsonFile) async {
+  Future<void> deleteNameFromSharedPreferences(TextEditingController textEditingController, String name, String nameOfJsonFile) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
 
@@ -568,6 +593,11 @@ class HomeScreen extends ConsumerWidget{
 
       jsonMap.remove(name);
 
+      textEditingController.clear();
+
+
+
+
       // Serialize the Map back into a JSON string
       String updatedJsonString = json.encode(jsonMap);
 
@@ -575,9 +605,14 @@ class HomeScreen extends ConsumerWidget{
 
       prefs.setString(nameOfJsonFile, updatedJsonString);
 
+      Fluttertoast.showToast(msg: '$name removed');
+
       print('Deleted $name from $nameOfJsonFile');
+      name = '';
     } else {
+      Fluttertoast.showToast(msg: '$name not found');
       print('Name does not exist in $nameOfJsonFile');
+      name = '';
     }
   }
 
@@ -586,151 +621,151 @@ class HomeScreen extends ConsumerWidget{
 
 
 
- Future<void> trainFromGallery({formKey, detectController,trainController, personName, fileName})async {
+  Future<void> trainFromGallery({formKey, detectController,trainController, personName, fileName})async {
 
 
 
-   if (formKey.currentState!.validate()) {
+    if (formKey.currentState!.validate()) {
 
 
-     //detect face and train the mobilefacenet model
-     await detectController.detectFacesFromImages(faceDetector, 'Train from gallery').then((imgList)async{
+      //detect face and train the mobilefacenet model
+      await detectController.detectFacesFromImages(faceDetector, 'Train from gallery').then((imgList)async{
 
 
-       final stopwatch = Stopwatch()..start();
+        final stopwatch = Stopwatch()..start();
 
-       await trainController.pickImagesAndTrain(personName,interpreter,imgList,fileName);
-       personName = '';
+        await trainController.pickImagesAndTrain(personName,interpreter,imgList,fileName);
 
-       stopwatch.stop();
-       final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
-       print('Detection and Training Execution Time: $elapsedSeconds seconds');
+        personName = '';
 
-     });
-
-   } else {
-     // Validation failed
-     print('Validation failed');
-   }
- }
+        stopwatch.stop();
+        final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
+        print('Detection and Training Execution Time: $elapsedSeconds seconds');
 
 
- Future<void> captureAndTrainImage({formKey,context,detectController,trainController,personName,fileName})async{
+      });
+
+    } else {
+      // Validation failed
+      // Fluttertoast.showToast(msg: 'Failed to add $personName !');
+      print('Validation failed');
+    }
+  }
 
 
-   // if (formKey.currentState!.validate()) {
-
-     final List<XFile>? capturedImages = await  Navigator.push(
-       context,
-       MaterialPageRoute(builder: (context) => CameraCaptureScreen(cameras: cameras,)),
-     );
-
-     if (capturedImages != null) {
-       await detectController.detectFacesFromImages(faceDetector, 'Train from captures', capturedImages).then((imgList)async{
+  Future<void> captureAndTrainImage({formKey,context,detectController,trainController,personName,fileName})async{
 
 
-         final stopwatch = Stopwatch()..start();
+    // if (formKey.currentState!.validate()) {
 
-         await trainController.pickImagesAndTrain(personName,interpreter,imgList, fileName);
+    final List<XFile>? capturedImages = await  Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CameraCaptureScreen(cameras: cameras,)),
+    );
 
-         // personName = '';
-
-
-
-         stopwatch.stop();
-         final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
-         print('Detection and Training Execution Time: $elapsedSeconds seconds');
-
-       });
-     }
-
-   }
-
-   Future<void> burstShotTraining({context,detectController, trainController,personName,fileName})async{
-
-     final Map<String,
-         dynamic> mapCapturedImages = await Navigator.push(
-       context,
-       MaterialPageRoute(builder: (context) =>
-           CameraBurstCaptureScreen(cameras: cameras,)),
-     );
-
-     // {'images':capturedImages, 'camController': controller}
-     List<CameraImage> camImages = mapCapturedImages['images'];
-     CameraController camController = mapCapturedImages['camController'];
-
-     // List<dynamic> imgList =[];
-     List<InputImage> inputImageList = [];
-     List<img.Image> imgImageList = [];
-
-     for (var i = 0; i < camImages.length; i++) {
-       //For detecting faces
-       InputImage inputImage = convertCameraImageToInputImage(
-           camImages[i], camController);
-
-       //For recognizing faces
-       img.Image imgImage = convertCameraImageToImgImage(
-           camImages[i],
-           camController.description.lensDirection);
+    if (capturedImages != null) {
+      await detectController.detectFacesFromImages(faceDetector, 'Train from captures', capturedImages).then((imgList)async{
 
 
-       inputImageList.add(inputImage);
-       imgImageList.add(imgImage);
+        final stopwatch = Stopwatch()..start();
 
-       //detects faces from each image. one loop for one image
+        await trainController.pickImagesAndTrain(personName,interpreter,imgList, fileName);
 
-       //listing all the face images one by one
-       // imgList.add(faceDetected[0]);
-
-     }
-     // print('The imglist length is ${imgList.length}');
-     await detectController.detectFromLiveFeedForRecognition(inputImageList, imgImageList, faceDetector).then((imgList) async{
-       // passing the list of all face images for saving in database.
-       await trainController.pickImagesAndTrain(personName, interpreter, imgList, fileName);
-     });
-
-   }
-
-   Future<void> recognizeImage({detectController,recognizeController, fileName})async{
-     await detectController.detectFacesFromImages(faceDetector, 'Recognize from gallery').then((value) async{
+        // personName = '';
 
 
 
+        stopwatch.stop();
+        final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
+        print('Detection and Training Execution Time: $elapsedSeconds seconds');
 
-       //For collection of data for FAR and FRR
-       for(var i = 0; i<value.length;i++){
-         final stopwatch = Stopwatch()..start();
+      });
+    }
 
-         await recognizeController. pickImagesAndRecognize(value[i], interpreter, isolateInterpreter, fileName);
+  }
 
-         stopwatch.stop();
-         final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
-         print('Recognition from image Execution Time: $elapsedSeconds seconds');
-       }
+  Future<void> burstShotTraining({context,detectController, trainController,personName,fileName})async{
 
-     });
+    final Map<String,
+        dynamic> mapCapturedImages = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) =>
+          CameraBurstCaptureScreen(cameras: cameras,)),
+    );
 
-   }
+    // {'images':capturedImages, 'camController': controller}
+    List<CameraImage> camImages = mapCapturedImages['images'];
+    CameraController camController = mapCapturedImages['camController'];
+
+    // List<dynamic> imgList =[];
+    List<InputImage> inputImageList = [];
+    List<img.Image> imgImageList = [];
+
+    for (var i = 0; i < camImages.length; i++) {
+      //For detecting faces
+      InputImage inputImage = convertCameraImageToInputImage(
+          camImages[i], camController);
+
+      //For recognizing faces
+      img.Image imgImage = convertCameraImageToImgImage(
+          camImages[i],
+          camController.description.lensDirection);
 
 
-   Future<void> goToLiveFeedScreen(context, detectController,fileName)async{
+      inputImageList.add(inputImage);
+      imgImageList.add(imgImage);
+
+      //detects faces from each image. one loop for one image
+
+      //listing all the face images one by one
+      // imgList.add(faceDetected[0]);
+
+    }
+    // print('The imglist length is ${imgList.length}');
+    await detectController.detectFromLiveFeedForRecognition(inputImageList, imgImageList, faceDetector).then((imgList) async{
+      // passing the list of all face images for saving in database.
+      await trainController.pickImagesAndTrain(personName, interpreter, imgList, fileName);
+    });
+
+  }
+
+  Future<void> recognizeImage({detectController,recognizeController, fileName})async{
+    await detectController.detectFacesFromImages(faceDetector, 'Recognize from gallery').then((value) async{
 
 
-     List<CameraDescription>  cameras =  await availableCameras();
-
-     Navigator.push(
-       context,
-       // MaterialPageRoute(builder: (context) => LiveFeedScreen()),
-       MaterialPageRoute(builder: (context) => LiveFeedScreen(
-         isolateInterpreter: isolateInterpreter,
-         detectionController: detectController,faceDetector: faceDetector,
-         cameras: cameras,interpreter: interpreter,
-         livenessInterpreter: livenessInterpreter,nameOfJsonFile: fileName,)),
-     );
-   }
 
 
+      //For collection of data for FAR and FRR
+      for(var i = 0; i<value.length;i++){
+        final stopwatch = Stopwatch()..start();
 
+        await recognizeController. pickImagesAndRecognize(value[i], interpreter, isolateInterpreter, fileName);
+
+        stopwatch.stop();
+        final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
+        print('Recognition from image Execution Time: $elapsedSeconds seconds');
+      }
+
+    });
+
+  }
+
+
+  Future<void> goToLiveFeedScreen(context, detectController,fileName)async{
+
+
+    List<CameraDescription>  cameras =  await availableCameras();
+
+    Navigator.push(
+      context,
+      // MaterialPageRoute(builder: (context) => LiveFeedScreen()),
+      MaterialPageRoute(builder: (context) => LiveFeedScreen(
+        isolateInterpreter: isolateInterpreter,
+        detectionController: detectController,faceDetector: faceDetector,
+        cameras: cameras,interpreter: interpreter,
+        livenessInterpreter: livenessInterpreter,nameOfJsonFile: fileName,)),
+    );
+  }
 
 
 }

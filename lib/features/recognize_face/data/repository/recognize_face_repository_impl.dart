@@ -25,61 +25,6 @@ class RecognizeFaceRepositoryImpl implements RecognizeFaceRepository{
 
 
 
-  //   @override
-  // Future<String> recognizeFace(img.Image image, Interpreter interpreter, String nameOfJsonFile) async {
-  //
-  //   final inputShape = interpreter.getInputTensor(0).shape;
-  //   final outputShape = interpreter.getOutputTensor(0).shape;
-  //
-  //
-  //   final inputShapeLength = inputShape[1];
-  //   final outputShapeLength = outputShape[1];
-  //
-  //   // List input =  imageToByteListFloat32(112, 127.5, 127.5, image);
-  //   // input = input.reshape([1, 112, 112, 3]);
-  //
-  //
-  //   List input =  imageToByteListFloat32(inputShapeLength, 127.5, 127.5, image);
-  //   // List input =  preProcess(image,160);
-  //   input = input.reshape([1, inputShapeLength, inputShapeLength, 3]);
-  //
-  //
-  //   // Initialize an empty list for outputs
-  //   // List output = List.filled(1 * 192, null, growable: false).reshape([1, 192]);
-  //   List output = List.filled(1 * outputShapeLength, null, growable: false).reshape([1, outputShapeLength]);
-  //
-  //   interpreter.run(input, output);
-  //
-  //   // output = output.reshape([192]);
-  //   output = output.reshape([outputShapeLength]);
-  //   var  finalOutput = List.from(output);
-  //   print(finalOutput);
-  //
-  //
-  //   //  final output = Float32List(1 * 192).reshape([1, 192]);
-  //   // interpreter.run(input, output);
-  //   //
-  //   // var  finalOutput = output[0] as List<double>;
-  //   // print('The final output is $finalOutput');
-  //   // print('The final output[0] is ${finalOutput[0]}');
-  //
-  //   Map<String, List<dynamic>> trainings = await dataSource.readMapFromSharedPreferences(nameOfJsonFile);
-  //
-  //   // return recognition(trainings, finalOutput, 0.585);
-  //   // return recognition(trainings, finalOutput, 0.8);
-  //   // return recognition(trainings, finalOutput, 0.7);
-  //  //  return recognition(trainings, finalOutput, 0.62);
-  //  //  return recognition(trainings, finalOutput, 0.61);
-  //  //  return recognition(trainings, finalOutput, 0.65);
-  //  //  return recognition(trainings, finalOutput, 0.68); //seemed better
-  //   return recognition(trainings, finalOutput, 15.5); //seemed better
-  //  //  return recognition(trainings, finalOutput, 17.5); //seemed better
-  //  //  return recognition(trainings, finalOutput, 0.75); // for burst shot trainings
-  // }
-
-
-
-
   @override
   Future<String> recognizeFace(img.Image image, Interpreter interpreter,IsolateInterpreter isolateInterpreter, String nameOfJsonFile) async {
 
@@ -219,8 +164,11 @@ class RecognizeFaceRepositoryImpl implements RecognizeFaceRepository{
       // print('the person is $matchedName');
       // print('the minDistance is $minDistance');
        if(matchedName == ''){
+
          print('Sad');
          print('No match!');
+
+         return '';
 
        }else{
          print('Yes!');

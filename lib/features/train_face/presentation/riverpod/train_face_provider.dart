@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
@@ -37,6 +38,8 @@ class TrainFaceNotifier extends StateNotifier<BaseState>{
         state = const ErrorState('No Face Detected');
       }else{
         await useCase.getImagesList(name, resizedImageList, interpreter, nameOfJsonFile);
+        state = SuccessState(name: name);
+        Fluttertoast.showToast(msg: '$name added successfully!');
       }
      // await useCase.getImagesList(name, resizedImageList, interpreter, nameOfJsonFile);
     }catch(e){
