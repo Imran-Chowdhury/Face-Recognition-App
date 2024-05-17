@@ -16,7 +16,7 @@ class CameraCaptureScreen extends ConsumerStatefulWidget {
   CameraCaptureScreen({Key? key,  required this.cameras,}) : super(key: key);
   late List<CameraDescription> cameras;
   @override
-  // _CameraCaptureScreenState createState() => _CameraCaptureScreenState();
+
   ConsumerState<CameraCaptureScreen> createState() => _CameraCaptureScreenState();
 }
 

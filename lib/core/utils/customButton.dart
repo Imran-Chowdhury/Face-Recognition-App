@@ -1,7 +1,6 @@
 
 
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
@@ -36,11 +35,6 @@ class CustomButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(15.0),
               child: Center(
                 child: icon,
-                // Icon(
-                //   Icons.person,
-                //   size: 30 ,
-                //   color: Colors.white,
-                // ),
               ),
             ),
           ),

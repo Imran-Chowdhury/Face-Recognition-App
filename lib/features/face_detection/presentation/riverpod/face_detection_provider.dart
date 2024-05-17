@@ -10,9 +10,9 @@
 import 'dart:async';
 
 
-import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+
 import 'package:google_ml_kit/google_ml_kit.dart';
 
 import 'package:image_picker/image_picker.dart';
@@ -119,15 +119,7 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
           state =   SuccessState(data: resizedImage);
         }else{
           state  = const ErrorState('No face detected');
-          // Fluttertoast.showToast(
-          //     msg: 'No face detected',
-          //     toastLength: Toast.LENGTH_LONG,
-          //     // gravity: ToastGravity.CENTER,
-          //     timeInSecForIosWeb: 1,
-          //     // backgroundColor: Colors.red,
-          //     textColor: Colors.white,
-          //     fontSize: 16.0
-          // );
+
         }
         stopwatch.stop();
         final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
@@ -146,7 +138,7 @@ class FaceDetectionNotifier extends StateNotifier<BaseState>{
 
 
 
- // Future<List> detectFromLiveFeedForRecognition(InputImage inputImage, img.Image image,  FaceDetector faceDetector)async{
+
   Future<List> detectFromLiveFeedForRecognition(List<InputImage> inputImage, List<img.Image> image,  FaceDetector faceDetector)async{
     final stopwatch = Stopwatch()..start();
 

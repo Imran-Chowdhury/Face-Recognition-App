@@ -37,24 +37,22 @@ class RecognizeFaceRepositoryImpl implements RecognizeFaceRepository{
 
     final inputShapeLength = inputShape[1];
     final outputShapeLength = outputShape[1];
-    // var  finalOutput;
 
-    // List input =  imageToByteListFloat32(112, 127.5, 127.5, image);
-    // input = input.reshape([1, 112, 112, 3]);
+
+
 
 
     List input =  imageToByteListFloat32(inputShapeLength, 127.5, 127.5, image);
-    // List input =  preProcess(image,160);
+
     input = input.reshape([1, inputShapeLength, inputShapeLength, 3]);
 
 
     // Initialize an empty list for outputs
-    // List output = List.filled(1 * 192, null, growable: false).reshape([1, 192]);
+
     List output = List.filled(1 * outputShapeLength, null, growable: false).reshape([1, outputShapeLength]);
 
+
     // interpreter.run(input, output);
-
-
 
     await isolateInterpreter.run(input, output);
 
@@ -64,17 +62,9 @@ class RecognizeFaceRepositoryImpl implements RecognizeFaceRepository{
 
     output = output.reshape([outputShapeLength]);
     var  finalOutput = List.from(output);
-    // print(finalOutput);
 
 
 
-    // output = output.reshape([192]);
-
-
-    //  final output = Float32List(1 * 192).reshape([1, 192]);
-    // interpreter.run(input, output);
-    //
-    // var  finalOutput = output[0] as List<double>;
     // print('The final output is $finalOutput');
     // print('The final output[0] is ${finalOutput[0]}');
 
@@ -88,7 +78,7 @@ class RecognizeFaceRepositoryImpl implements RecognizeFaceRepository{
     final double elapsedSeconds = stopwatch.elapsedMilliseconds / 1000.0;
     print('Inference Time: $elapsedSeconds seconds');
 
-    // return 'Testing...';
+
 
     //  return recognition(trainings, finalOutput, 15.5); //seemed better and the safest to go
     return recognition(trainings, finalOutput, 16.5); //seemed better
@@ -129,17 +119,6 @@ class RecognizeFaceRepositoryImpl implements RecognizeFaceRepository{
 
           // print('the Cosine distance for $key  is $cosineDistance');
           print('the Euclidean distance for $key  is $distance');
-
-
-          // avg = avg + distance;
-          // counter++;
-          // if(counter==value.length){
-          //   avg = avg/(value.length);
-          //   avgMap[key] = avg;
-          //   debugPrint('The counter is $counter and value length is ${value.length}');
-          //   counter = 0;
-          // }
-
 
 
 

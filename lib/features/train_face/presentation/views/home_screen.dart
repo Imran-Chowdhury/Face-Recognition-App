@@ -75,7 +75,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Load models and initialize detectors
     interpreter = await loadModel();
     isolateInterpreter = await IsolateInterpreter.create(address: interpreter.address);
-    livenessInterpreter = await loadLivenessModel();
+    // livenessInterpreter = await loadLivenessModel();
     cameras = await availableCameras();
 
     // Initialize face detector
@@ -110,20 +110,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
 
-    //
-    // if (Platform.isIOS) {
-    //   interpreterOptions.addDelegate(GpuDelegate());
-    // }
 
-    // final gpuDelegateV2 = tf_lite.GpuDelegateV2(
-    //     options: tf_lite.GpuDelegateOptionsV2(
-    //         isPrecisionLossAllowed: false,
-    //         inferencePreference: tf_lite.TfLiteGpuInferenceUsage.TFLITE_GPU_INFERENCE_PREFERENCE_FAST_SINGLE_ANSWER,
-    //         inferencePriority1: tf_lite.TfLiteGpuInferencePriority.minMemoryUsage,
-    //         inferencePriority2:tf_lite.TfLiteGpuInferencePriority.minLatency,
-    //         inferencePriority3: tf_lite.TfLiteGpuInferencePriority.auto,
-    //         maxDelegatePartitions: 1)
-    // );
+    if (Platform.isIOS) {
+      interpreterOptions.addDelegate(GpuDelegate());
+    }
+
+
 
      // GpuDelegateV2 gpuDelegateV2 = tf_lite.GpuDelegateV2(options: tf_lite.GpuDelegateOptionsV2());
      // interpreterOptions.addDelegate(gpuDelegateV2);
@@ -141,12 +133,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // facenet(face_recognizer_android_repo).tflite
   }
 
-  Future<tf_lite.Interpreter> loadLivenessModel() async {
-    // return await TfLiteModel.Interpreter.fromAsset('assets/FaceDeSpoofing.tflite');
-    return await tf_lite.Interpreter.fromAsset('assets/FaceAntiSpoofing.tflite');
-
-
-  }
+  // Future<tf_lite.Interpreter> loadLivenessModel() async {
+  //   // return await TfLiteModel.Interpreter.fromAsset('assets/FaceDeSpoofing.tflite');
+  //   return await tf_lite.Interpreter.fromAsset('assets/FaceAntiSpoofing.tflite');
+  //
+  //
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -170,10 +162,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     //
     // debugPrint('The width = $width and the height = $height');
 
-//for deleting and printing name
-//     String fileName = 'galleryData';
-//     String fileName = 'galleryData2(th = 0.62)';
-//     String fileName = 'liveTraining(Th = 0.58, mean = std = 127.5)'; //for now livefeeds datas are in this file
+ //for deleting and printing name
+    // String fileName = 'galleryData';
+    // String fileName = 'galleryData2(th = 0.62)';
+    //String fileName = 'liveTraining(Th = 0.58, mean = std = 127.5)'; //for now livefeeds datas are in this file
     // String fileName = 'testMap';
     // String fileName = 'liveGallery-live';
     // String fileName = 'liveTraining(with tflite helper)'; //for now livefeeds datas are in this file
@@ -181,12 +173,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
 
 
-// Function to capitalize the first letter of a string
-    String capitalizeFirstLetter(String string) {
-      return string.isNotEmpty
-          ? string[0].toUpperCase() + string.substring(1)
-          : string;
-    }
+
 
 
     Uint8List convertImageToUint8List(img.Image image) {
@@ -204,323 +191,327 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     debugPrint('the length of the camera is ${cameras.length}');
 
 
-    // if(detectState is ErrorState) {
-    //   Fluttertoast.showToast(
-    //       msg: detectState.errorMessage,
-    //       toastLength: Toast.LENGTH_LONG,
-    //       // gravity: ToastGravity.CENTER,
-    //       timeInSecForIosWeb: 1,
-    //       // backgroundColor: Colors.red,
-    //       textColor: Colors.white,
-    //       fontSize: 16.0
-    //   );
-    // }
-    // if(trainState is ErrorState){
-    //   Fluttertoast.showToast(
-    //       msg: '${trainState.errorMessage}trainstate',
-    //       toastLength: Toast.LENGTH_LONG,
-    //       // gravity: ToastGravity.CENTER,
-    //       timeInSecForIosWeb: 1,
-    //       // backgroundColor: Colors.red,
-    //       textColor: Colors.white,
-    //       fontSize: 16.0
-    //   );
-    // }
-
-
-    return Scaffold(
-      backgroundColor:  const Color(0xFF3a3b45),
-      // appBar: AppBar(
-      //   backgroundColor:  const Color(0xFF0cdec1),
-      //   title: const Text('Face Recognition'),
-      // ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            // Center(
-            //   child: Text(
-            //       'File being used is $fileName',
-            //     style: const TextStyle(fontSize: 15.0),
-            //   ),
-            // ),const Center(
-            //   child: Text(
-            //     'quality high',
-            //     style: TextStyle(fontSize: 15.0),
-            //   ),
-            // ),
-            const Padding(
-              padding: EdgeInsets.only(top: 50,bottom: 40),
-              // padding: EdgeInsets.only(top: (height*0.07)),
-              child: Center(
-                child: Text(
-                  'Face-Recognizer',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 30.0,
-                      fontWeight: FontWeight.bold
-                  ),
-                ),
-              ),
-            ),
-
-            // const SizedBox(height: 10.0,),
-            Form(
-              key: _formKey,
-              child: Column(
-
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only( left: 10, right: 10, bottom: 50),
-                    child: TextFormField(
-                      controller: textFieldController,
-                      decoration: InputDecoration(
-                        hintText: 'Enter Name',
-                        labelText: 'Name',
-                        labelStyle: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 20.0,
-                        ),
-                        filled: true, // Fill the background of the text field
-                        fillColor: Colors.white, // Color inside the text field
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(80.0),
-                          borderSide: BorderSide.none, // Remove the border
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(80.0),
-                          borderSide: const BorderSide(
-                            color: Colors.black, // Default border color
-                            width: 2.0, // Default border thickness
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(80.0),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF0cdec1),
-                            // Gradient border when focused
-                            // gradient: LinearGradient(
-                            //   colors: [Color(0xFF0cdec1), Color(0xFF0ad8e6)],
-                            //   begin: Alignment.topLeft,
-                            //   end: Alignment.bottomRight,
-                            // ),
-                            width: 2.0, // Border thickness
-                          ),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(800.0),
-                          borderSide: const BorderSide(
-                            color: Colors.red, // Border color for error state
-                            width: 2.0, // Border thickness
-                          ),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(80.0),
-                          borderSide: const BorderSide(
-                            color: Colors.red, // Border color for error state when focused
-                            width: 2.0, // Border thickness
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        personName = value.trim();
-
-                      },
-                      validator: Validator.personNameValidator,
+    return GestureDetector(
+        onTap: () {
+          // Hide the keyboard when tapped outside of the text field
+          FocusScope.of(context).unfocus();
+        },
+      child: Scaffold(
+        backgroundColor:  const Color(0xFF3a3b45),
+        // appBar: AppBar(
+        //   backgroundColor:  const Color(0xFF0cdec1),
+        //   title: const Text('Face Recognition'),
+        // ),
+        body: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Center(
+              //   child: Text(
+              //       'File being used is $fileName',
+              //     style: const TextStyle(fontSize: 15.0),
+              //   ),
+              // ),const Center(
+              //   child: Text(
+              //     'quality high',
+              //     style: TextStyle(fontSize: 15.0),
+              //   ),
+              // ),
+             const Padding(
+                // padding: EdgeInsets.only(top: height*0.03,bottom: height*0.04),
+               padding: EdgeInsets.only(top: 50,bottom: 40),
+                // padding: EdgeInsets.only(top: (height*0.07)),
+                child: Center(
+                  child: Text(
+                    'Face-Recognizer',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 30.0,
+                        fontWeight: FontWeight.bold
                     ),
                   ),
-
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      CustomButton(
-                        onPressed: (){
-                          if (_formKey.currentState!.validate()) {
-                            trainFromGallery(
-                                formKey: _formKey,
-                                detectController: detectController,
-                                trainController: trainController,
-                                personName:personName.trim(),
-                                fileName: fileName );
-                          }
-                        },
-                        buttonName: 'Gallery',
-                        icon: const Icon(Icons.photo_library,color: Colors.white,),),
-                      CustomButton(
-                        buttonName: 'Match',
-                        icon: const Icon(Icons.compare,color: Colors.white,),
-                        onPressed: ()async{
-                          recognizeImage(detectController: detectController,
-                              recognizeController: recognizeController,
-                              fileName: fileName);
-
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-
-                      CustomButton(
-                        buttonName: 'Burst',
-                        icon: const Icon(Icons.burst_mode_outlined,color: Colors.white,),
-                        onPressed: ()async {
-                          if (_formKey.currentState!.validate()) {
-                            burstShotTraining(context: context,detectController: detectController,
-                                trainController: trainController,personName: personName,fileName: fileName);
-                          }
-                        },
-                      ),
-                      CustomButton(
-                        buttonName: 'Live',
-                        icon: const Icon(Icons.videocam,color: Colors.white,),
-                        onPressed: (){
-                          goToLiveFeedScreen(context, detectController,fileName);
-                        },
-                      ),
-                      CustomButton(
-                        buttonName: 'Capture',
-                        icon: const Icon(Icons.camera_alt,color: Colors.white),
-                        onPressed: (){
-
-                          if (_formKey.currentState!.validate()) {
-                            captureAndTrainImage(formKey: _formKey,
-                                context: context,
-                                detectController: detectController,
-                                trainController: trainController,
-                                personName: personName,
-                                fileName: fileName);
-                          }
-
-                        },
-                      ),
-
-                    ],
-                  ),
-
-                  const SizedBox(height: 20,),
-
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      CustomButton(
-                        buttonName: 'Delete',
-                        icon: const Icon(Icons.delete,color: Colors.white,),
-                        onPressed: (){
-                          if (_formKey.currentState!.validate()) {
-                            deleteNameFromSharedPreferences(textFieldController, personName,fileName);
-                          }
-                        },
-                      ),
-                      CustomButton(
-                        buttonName: 'Print',
-                        icon: const Icon(Icons.print,color: Colors.white,),
-                        onPressed: (){
-                          getKeysFromTestMap(fileName);
-                        },
-                      ),
-                    ],
-                  ),
-
-
-
-
-
-                ],
-
+                ),
               ),
-            ),
 
+              // const SizedBox(height: 10.0,),
+              Form(
+                key: _formKey,
+                child: Column(
 
-
-
-            if(detectState is LoadingState)
-              const CircularProgressIndicator(),
-
-
-            if(detectState is SuccessState)
-
-              Container(
-                height: 200,
-                width: 100,
-
-                child: ListView.builder(
-
-                  itemCount: detectState.data?.length ?? 0,
-                  itemBuilder: (context, index) {
-                    final img.Image image = detectState.data[index];
-                    final Uint8List uint8List = convertImageToUint8List(image);
-
-
-                    return
-                      Container(
-                        width: 112,
-                        height: 112,
-                        // margin: const EdgeInsets.all(8.0),
-                        child: Image.memory(
-                          uint8List,
-                          width: 112.0,
-                          height: 112.0,
-                          // fit: BoxFit.cover,
+                  children: [
+                    Padding(
+                      // padding: EdgeInsets.only( left: width*0.04, right: width*0.04, bottom: 50),
+                      padding: const EdgeInsets.only( left: 10, right: 10, bottom: 50),
+                      child: TextFormField(
+                        controller: textFieldController,
+                        decoration: InputDecoration(
+                          hintText: 'Enter Name',
+                          // labelText: 'Name',
+                          // labelStyle: const TextStyle(
+                          //   color: Colors.black,
+                          //   fontSize: 20.0,
+                          // ),
+                          filled: true, // Fill the background of the text field
+                          fillColor: Colors.white, // Color inside the text field
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(80.0),
+                            borderSide: BorderSide.none, // Remove the border
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(80.0),
+                            borderSide: const BorderSide(
+                              color: Colors.black, // Default border color
+                              width: 2.0, // Default border thickness
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(80.0),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF0cdec1),
+                              // Gradient border when focused
+                              // gradient: LinearGradient(
+                              //   colors: [Color(0xFF0cdec1), Color(0xFF0ad8e6)],
+                              //   begin: Alignment.topLeft,
+                              //   end: Alignment.bottomRight,
+                              // ),
+                              width: 2.0, // Border thickness
+                            ),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(800.0),
+                            borderSide: const BorderSide(
+                              color: Colors.red, // Border color for error state
+                              width: 2.0, // Border thickness
+                            ),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(80.0),
+                            borderSide: const BorderSide(
+                              color: Colors.red, // Border color for error state when focused
+                              width: 2.0, // Border thickness
+                            ),
+                          ),
                         ),
-                      );
-                  },
+                        onChanged: (value) {
+                          personName = value.trim();
+
+                        },
+                        validator: Validator.personNameValidator,
+                      ),
+                    ),
+
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        CustomButton(
+                          onPressed: (){
+                            if (_formKey.currentState!.validate()) {
+                              trainFromGallery(
+                                  formKey: _formKey,
+                                  detectController: detectController,
+                                  trainController: trainController,
+                                  personName:personName.trim(),
+                                  fileName: fileName );
+                            }
+                          },
+                          buttonName: 'Gallery',
+                          icon: const Icon(Icons.photo_library,color: Colors.white,),),
+                        CustomButton(
+                          buttonName: 'Match',
+                          icon: const Icon(Icons.compare,color: Colors.white,),
+                          onPressed: ()async{
+                            recognizeImage(detectController: detectController,
+                                recognizeController: recognizeController,
+                                fileName: fileName);
+
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20,),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+
+                        CustomButton(
+                          buttonName: 'Burst',
+                          icon: const Icon(Icons.burst_mode_outlined,color: Colors.white,),
+                          onPressed: ()async {
+                            if (_formKey.currentState!.validate()) {
+                              burstShotTraining(context: context,detectController: detectController,
+                                  trainController: trainController,personName: personName,fileName: fileName);
+                            }
+                          },
+                        ),
+                        CustomButton(
+                          buttonName: 'Live',
+                          icon: const Icon(Icons.videocam,color: Colors.white,),
+                          onPressed: (){
+                            goToLiveFeedScreen(context, detectController,fileName);
+                          },
+                        ),
+                        CustomButton(
+                          buttonName: 'Capture',
+                          icon: const Icon(Icons.camera_alt,color: Colors.white),
+                          onPressed: (){
+
+                            if (_formKey.currentState!.validate()) {
+                              captureAndTrainImage(formKey: _formKey,
+                                  context: context,
+                                  detectController: detectController,
+                                  trainController: trainController,
+                                  personName: personName,
+                                  fileName: fileName);
+                            }
+
+                          },
+                        ),
+
+                      ],
+                    ),
+
+                    const SizedBox(height: 20,),
+
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        CustomButton(
+                          buttonName: 'Delete',
+                          icon: const Icon(Icons.delete,color: Colors.white,),
+                          onPressed: (){
+                            if (_formKey.currentState!.validate()) {
+                              deleteNameFromSharedPreferences(textFieldController, personName,fileName);
+                            }
+                          },
+                        ),
+                        CustomButton(
+                          buttonName: 'Print',
+                          icon: const Icon(Icons.print,color: Colors.white,),
+                          onPressed: (){
+                            getKeysFromTestMap(fileName);
+                          },
+                        ),
+                      ],
+                    ),
+
+
+
+
+
+                  ],
+
                 ),
               ),
 
-            const SizedBox(height: 10.0,),
 
 
 
-            // if(trainState is SuccessState)
-            //   Center(child: Text(trainState.name,
-            //     style: const  TextStyle(
-            //       fontSize: 25,
-            //       fontWeight: FontWeight.bold,
-            //       color: Colors.white,
-            //     ),
-            //   ),
-            //   ),
+              if(detectState is LoadingState)
+                const CircularProgressIndicator(),
 
 
+              if(detectState is SuccessState)
 
-            if(recognizeState is SuccessState && detectState is SuccessState)
-              Center(child: Text(recognizeState.name,
-                style: const  TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                Container(
+                  height: 200,
+                  width: 100,
+
+                  child: ListView.builder(
+
+                    itemCount: detectState.data?.length ?? 0,
+                    itemBuilder: (context, index) {
+                      final img.Image image = detectState.data[index];
+                      final Uint8List uint8List = convertImageToUint8List(image);
+
+
+                      return
+                        Container(
+                          width: 112,
+                          height: 112,
+                          // margin: const EdgeInsets.all(8.0),
+                          child: Image.memory(
+                            uint8List,
+                            width: 112.0,
+                            height: 112.0,
+                            // fit: BoxFit.cover,
+                          ),
+                        );
+                    },
+                  ),
                 ),
-              ),
-              ),
 
-            if(recognizeState is ErrorState)
-              Center(child: Text(recognizeState.errorMessage,
-                style: const  TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              const SizedBox(height: 10.0,),
+
+
+
+              // if(trainState is SuccessState)
+              //   Center(child: Text(trainState.name,
+              //     style: const  TextStyle(
+              //       fontSize: 25,
+              //       fontWeight: FontWeight.bold,
+              //       color: Colors.white,
+              //     ),
+              //   ),
+              //   ),
+
+
+
+              if(recognizeState is SuccessState && detectState is SuccessState)
+                Center(child: Text(recognizeState.name,
+                  style: const  TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              ),
-
-            if(detectState is ErrorState)
-              Center(child: Text(detectState.errorMessage,
-                style: const  TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
                 ),
-              ),
-              ),
+
+              if(recognizeState is ErrorState && detectState is SuccessState)
+                Center(child: Text(recognizeState.errorMessage,
+                  style: const  TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                ),
+
+              if(detectState is ErrorState && recognizeState is ErrorState)
+                Center(child: Text(recognizeState.errorMessage,
+                  style: const  TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                ),
+              if(detectState is ErrorState)
+                Center(child: Text(detectState.errorMessage,
+                  style: const  TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                ),
 
 
-          ],
+              // if(trainState is ErrorState && detectState is ErrorState)
+              //   Center(child: Text(trainState.errorMessage,
+              //     style: const  TextStyle(
+              //       fontSize: 25,
+              //       fontWeight: FontWeight.bold,
+              //       color: Colors.white,
+              //     ),
+              //   ),
+              //   ),
+
+
+            ],
+          ),
         ),
       ),
     );
@@ -763,7 +754,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         isolateInterpreter: isolateInterpreter,
         detectionController: detectController,faceDetector: faceDetector,
         cameras: cameras,interpreter: interpreter,
-        livenessInterpreter: livenessInterpreter,nameOfJsonFile: fileName,)),
+        nameOfJsonFile: fileName,
+        // livenessInterpreter: livenessInterpreter,
+        ),
+      ),
     );
   }
 
