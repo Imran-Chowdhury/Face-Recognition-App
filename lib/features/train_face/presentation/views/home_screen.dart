@@ -106,7 +106,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ..addDelegate(GpuDelegateV2()); //good
     return await tf_lite.Interpreter.fromAsset('assets/facenet_512.tflite',
         options: interpreterOptions);
-    
+
     //
     // if (Platform.isAndroid) {
     //   interpreterOptions.addDelegate(XNNPackDelegate(options: XNNPackDelegateOptions(numThreads: Platform.numberOfProcessors)));
