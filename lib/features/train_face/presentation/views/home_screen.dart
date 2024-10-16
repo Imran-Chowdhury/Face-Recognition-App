@@ -100,45 +100,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<tf_lite.Interpreter> loadModel() async {
 
-    InterpreterOptions interpreterOptions = InterpreterOptions();
-    // final processorNum =  Platform.numberOfProcessors;
-    // print('The number of processors are $processorNum');
 
 
-    if (Platform.isAndroid) {
-      interpreterOptions.addDelegate(XNNPackDelegate(options: XNNPackDelegateOptions(numThreads: Platform.numberOfProcessors)));
-    }
-
-
-
-    if (Platform.isIOS) {
-      interpreterOptions.addDelegate(GpuDelegate());
-    }
-
-
-
-     // GpuDelegateV2 gpuDelegateV2 = tf_lite.GpuDelegateV2(options: tf_lite.GpuDelegateOptionsV2());
-     // interpreterOptions.addDelegate(gpuDelegateV2);
-
-
-
-
-    // return await TfLiteModel.Interpreter.fromAsset('assets/facenet.tflite');
-    // return await TfLiteModel.Interpreter.fromAsset('assets/mobile_face_net.tflite');
-    // return await TfLiteModel.Interpreter.fromAsset('assets/FaceMobileNet_Float32.tflite');
+    var interpreterOptions = InterpreterOptions()
+      ..addDelegate(GpuDelegateV2()); //good
     return await tf_lite.Interpreter.fromAsset('assets/facenet_512.tflite',
-      options: interpreterOptions..threads = Platform.numberOfProcessors,
-    );
-    // return await TfLiteModel.Interpreter.fromAsset('assets/facenet(face_recognizer_android_repo).tflite');
-    // facenet(face_recognizer_android_repo).tflite
+        options: interpreterOptions);
+    
+    //
+    // if (Platform.isAndroid) {
+    //   interpreterOptions.addDelegate(XNNPackDelegate(options: XNNPackDelegateOptions(numThreads: Platform.numberOfProcessors)));
+    // }
+    //
+    // if (Platform.isIOS) {
+    //   interpreterOptions.addDelegate(GpuDelegate());
+    // }
+    //
+    //  // GpuDelegateV2 gpuDelegateV2 = tf_lite.GpuDelegateV2(options: tf_lite.GpuDelegateOptionsV2());
+    //  // interpreterOptions.addDelegate(gpuDelegateV2);
+    //
+    //
+    // return await tf_lite.Interpreter.fromAsset('assets/facenet_512.tflite',
+    //   options: interpreterOptions..threads = Platform.numberOfProcessors,
+    // );
   }
 
-  // Future<tf_lite.Interpreter> loadLivenessModel() async {
-  //   // return await TfLiteModel.Interpreter.fromAsset('assets/FaceDeSpoofing.tflite');
-  //   return await tf_lite.Interpreter.fromAsset('assets/FaceAntiSpoofing.tflite');
-  //
-  //
-  // }
+
 
   @override
   Widget build(BuildContext context) {
