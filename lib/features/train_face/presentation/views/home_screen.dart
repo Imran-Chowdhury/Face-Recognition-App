@@ -81,7 +81,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Initialize face detector
     final faceDetectorOptions = FaceDetectorOptions(
       minFaceSize: 0.2,
-      performanceMode: FaceDetectorMode.accurate, // or .fast
+      // performanceMode: FaceDetectorMode.accurate, // or .fast
+      performanceMode: FaceDetectorMode.fast, // or .accurate
     );
     faceDetector = FaceDetector(options: faceDetectorOptions);
   }
